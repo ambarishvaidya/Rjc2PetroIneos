@@ -8,6 +8,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PowerPeriodInterface\PowerPeriodInterface.csproj" />
+	<Reference Include="PowerService">
+		<HintPath>Libs\PowerService.dll</HintPath>
+		<Private>true</Private>
+	</Reference>
   </ItemGroup>
 
 </Project>
