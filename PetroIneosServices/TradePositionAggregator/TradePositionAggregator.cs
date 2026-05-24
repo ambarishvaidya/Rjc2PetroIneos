@@ -10,7 +10,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<PowerPeriod>
     public IEnumerable<PowerPeriod> GetTradePositions(DateTime localDateTime)
     {
         if(!IsPassedLocalDateTimeValid(localDateTime))         
-            throw new ArgumentException("The date cannot be in the past.");
+            throw new ArgumentException("DateTime has to local time within 1 minute tolerance.");
 
         return null;
     }
@@ -18,13 +18,15 @@ public class TradePositionAggregator : ITradePositionDataProvider<PowerPeriod>
     public Task<IEnumerable<PowerPeriod>> GetTradePositionsAsync(DateTime localDateTime)
     {
         if (!IsPassedLocalDateTimeValid(localDateTime))        
-            throw new ArgumentException("The date cannot be in the past.");
+            throw new ArgumentException("DateTime has to local time within 1 minute tolerance.");
 
         return Task.FromResult<IEnumerable<PowerPeriod>>(null);
     }
 
     private bool IsPassedLocalDateTimeValid(DateTime localDateTime)
     {
+        if (localDateTime.Kind != DateTimeKind.Local) return false;            
+
         var now = DateTime.Now;
 
         var lt = new DateTime(localDateTime.Year, localDateTime.Month, localDateTime.Day, localDateTime.Hour, localDateTime.Minute, localDateTime.Second);

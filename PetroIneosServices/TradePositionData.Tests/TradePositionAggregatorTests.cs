@@ -42,4 +42,21 @@ public class DateTimeInputTests
         var pastDate = DateTime.Now.AddMinutes(min);
         Assert.DoesNotThrowAsync(async () => await agregator.GetTradePositionsAsync(pastDate));
     }
+
+
+    [Test]
+    public void GetTradePositions_WhenDateKindIsNotLocal_ThrowArgumentException()
+    {
+        var agregator = new TradePositionAggregator();
+        var pastDate = DateTime.UtcNow;
+        Assert.Throws<ArgumentException>(() => agregator.GetTradePositions(pastDate));
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenDateKindIsNotLocal_ThrowArgumentException()
+    {
+        var agregator = new TradePositionAggregator();
+        var pastDate = DateTime.UtcNow;
+        Assert.ThrowsAsync<ArgumentException>(async () => await agregator.GetTradePositionsAsync(pastDate));
+    }
 }
