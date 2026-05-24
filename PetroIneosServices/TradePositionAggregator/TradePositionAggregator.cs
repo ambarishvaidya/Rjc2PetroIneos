@@ -5,7 +5,13 @@ namespace TradePositionData;
 
 public class TradePositionAggregator : ITradePositionDataProvider<PowerPeriod>
 {
-    private int tolerance = 1; 
+    private int tolerance = 1;
+    private readonly IPowerService _powerService;
+
+    public TradePositionAggregator(IPowerService powerService)
+    {
+        _powerService = powerService;
+    }
 
     public IEnumerable<PowerPeriod> GetTradePositions(DateTime localDateTime)
     {

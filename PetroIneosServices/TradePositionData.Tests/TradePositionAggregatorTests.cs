@@ -1,4 +1,8 @@
-﻿namespace TradePositionData.Tests;
+﻿using Moq;
+using Services;
+
+
+namespace TradePositionData.Tests;
 
 public class DateTimeInputTests
 {   
@@ -7,7 +11,8 @@ public class DateTimeInputTests
     [SetUp]
     public void Setup()
     {
-        _aggregator = new TradePositionAggregator();
+        var powerServiceMock = new Mock<IPowerService>();
+        _aggregator = new TradePositionAggregator(powerServiceMock.Object);
     }
 
     [Test]
