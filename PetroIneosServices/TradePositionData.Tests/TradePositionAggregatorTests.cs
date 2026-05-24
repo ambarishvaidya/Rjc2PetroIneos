@@ -4,9 +4,74 @@ using Services;
 
 namespace TradePositionData.Tests;
 
+public class ValidResponseTests
+{
+    ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
+    Mock<IPowerService> _powerServiceMock;
+
+    [SetUp]
+    public void Setup()
+    {
+        _powerServiceMock = new Mock<IPowerService>();
+        _aggregator = new TradePositionAggregator(_powerServiceMock.Object);
+    }
+
+    [Test]
+    public void GetTradePositions_WhenPowerServiceReturnsSingleResponse_ReturnAggregatedTradePositionWithSinglePosition()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>()))
+            .Returns(() => simglePowerTrade);
+        var obj = _aggregator.GetTradePositions(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.TradePositionCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenPowerServiceReturnsSingleResponse_ReturnAggregatedTradePositionWithSinglePosition()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>()))
+            .ReturnsAsync(() => simglePowerTrade);
+        var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.TradePositionCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void GetTradePositions_WhenPowerServiceReturnsMultipleResponse_ReturnAggregatedTradePosition()
+    {
+        var date = DateTime.Now;
+        var multiPowerTrade = 
+            new List<PowerTrade>() { PowerTrade.Create(date, 10), PowerTrade.Create(date, 10), PowerTrade.Create(date, 10) };
+        _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>()))
+            .Returns(() => multiPowerTrade);
+        var obj = _aggregator.GetTradePositions(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.TradePositionCount, Is.EqualTo(30));
+
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenPowerServiceReturnsMultipleResponse_ReturnAggregatedTradePosition()
+    {
+        var date = DateTime.Now;
+        var simglePowerTrade =
+            new List<PowerTrade>() { PowerTrade.Create(date, 10), PowerTrade.Create(date, 10), PowerTrade.Create(date, 10) };
+        _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>()))
+            .ReturnsAsync(() => simglePowerTrade);
+        var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.TradePositionCount, Is.EqualTo(30));
+    }
+}
 public class InvalidResponseTests
 {
-    TradePositionAggregator _aggregator;
+    ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
     Mock<IPowerService> _powerServiceMock;
 
     [SetUp]
@@ -78,8 +143,8 @@ public class InvalidResponseTests
 }
 
 public class DateTimeInputTests
-{   
-    TradePositionAggregator _aggregator;
+{
+    ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
 
     [SetUp]
     public void Setup()

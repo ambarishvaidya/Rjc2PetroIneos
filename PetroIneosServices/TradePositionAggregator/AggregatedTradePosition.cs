@@ -5,16 +5,15 @@ namespace TradePositionData;
 public class AggregatedTradePosition : IAggregatedTradePosition
 {
     private AggregatedTradePosition() { }
-    internal AggregatedTradePosition(DateTime requestedDateTime, int positionCount, bool successful)
+    internal AggregatedTradePosition(DateTime requestedDateTime)
     {
         RequestedDateTime = requestedDateTime;
-        TradePositionCount = positionCount;
-        IsSuccessful = successful;
+        IsSuccessful = false;
     }
 
     public DateTime RequestedDateTime { get; }
-    public int TradePositionCount { get; }
-    public bool IsSuccessful { get; }
-    public Dictionary<string, double> TradePositions { get; internal set; }
-    public List<string> Errors { get; internal set; }
+    public int TradePositionCount { get; set; }
+    public bool IsSuccessful { get; set; }
+    public Dictionary<string, double> TradePositions { get; set; }
+    public List<string> Errors { get; set; }
 }
