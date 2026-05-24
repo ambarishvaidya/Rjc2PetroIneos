@@ -7,7 +7,7 @@ namespace TradePositionData;
 
 public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTradePosition>
 {
-    private int tolerance = 1;
+    private int TOLERANCE_IN_MINS = 1;
     private readonly IPowerService _powerService;    
     private static FrozenDictionary<int, string> PeriodTimeMap = new Dictionary<int, string>()
     {
@@ -128,6 +128,6 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         var lt = new DateTime(localDateTime.Year, localDateTime.Month, localDateTime.Day, localDateTime.Hour, localDateTime.Minute, localDateTime.Second);
         var nt = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second);
 
-        return (nt - lt).Duration() <= TimeSpan.FromMinutes(tolerance);
+        return (nt - lt).Duration() <= TimeSpan.FromMinutes(TOLERANCE_IN_MINS);
     }
 }
