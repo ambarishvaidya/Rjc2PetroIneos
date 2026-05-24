@@ -5,6 +5,172 @@ using Services;
 
 namespace TradePositionData.Tests;
 
+public class RetryTests
+{
+    ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
+    Mock<IPowerService> _powerServiceMock;
+
+    [SetUp]
+    public void Setup()
+    {
+        _powerServiceMock = new Mock<IPowerService>();
+        _aggregator = new TradePositionAggregator(_powerServiceMock.Object, TwoSWaitOneSecRetry.AsyncRetry, TwoSWaitOneSecRetry.SyncRetry);
+    }
+
+    [Test]
+    public void GetTradePositionsRetries_WhenPowerServiceReturnsNullOnce_ReturnAggregatedTradePositionWithSinglePosition()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTrades(It.IsAny<DateTime>()))
+            .Returns(() => null)
+            .Returns(() => simglePowerTrade);
+        var obj = _aggregator.GetTradePositions(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.TradePositionCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenPowerServiceReturnsSingleResponse_ReturnAggregatedTradePositionWithSinglePosition()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTradesAsync(It.IsAny<DateTime>()))
+            .ReturnsAsync(() => null)
+            .ReturnsAsync(() => simglePowerTrade);
+        var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.TradePositionCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void GetTradePositionsRetries_WhenPowerServiceThrowsExceptionOnce_ReturnAggregatedTradePositionWithSinglePosition()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTrades(It.IsAny<DateTime>()))
+            .Throws(new Exception())
+            .Returns(() => simglePowerTrade);
+        var obj = _aggregator.GetTradePositions(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.TradePositionCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenPowerServiceThrowsExceptionOnce_ReturnAggregatedTradePositionWithSinglePosition()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTradesAsync(It.IsAny<DateTime>()))
+            .ThrowsAsync(new Exception())
+            .ReturnsAsync(() => simglePowerTrade);
+        var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.TradePositionCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void GetTradePositionsRetries_WhenPowerServiceReturnsEmptyOnce_ReturnAggregatedTradePositionWithSinglePosition()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTrades(It.IsAny<DateTime>()))
+            .Returns(() => Array.Empty<PowerTrade>())
+            .Returns(() => simglePowerTrade);
+        var obj = _aggregator.GetTradePositions(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.TradePositionCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenPowerServiceReturnsEmptyOnce_ReturnAggregatedTradePositionWithSinglePosition()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTradesAsync(It.IsAny<DateTime>()))
+            .ReturnsAsync(() => Array.Empty<PowerTrade>())
+            .ReturnsAsync(() => simglePowerTrade);
+        var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.TradePositionCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void GetTradePositionsRetries_WhenPowerServiceReturnsEmptyTwice_ReturnAggregatedTradePositionWithError()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTrades(It.IsAny<DateTime>()))
+            .Returns(() => Array.Empty<PowerTrade>())
+            .Returns(() => Array.Empty<PowerTrade>());
+        var obj = _aggregator.GetTradePositions(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Failure));        
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenPowerServiceReturnsEmptyTwice_ReturnAggregatedTradePositionWithError()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTradesAsync(It.IsAny<DateTime>()))
+            .ReturnsAsync(() => Array.Empty<PowerTrade>())
+            .ReturnsAsync(() => Array.Empty<PowerTrade>());
+        var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Failure));
+    }
+
+    [Test]
+    public void GetTradePositionsRetries_WhenPowerServiceReturnsExceptionTwice_ReturnAggregatedTradePositionWithError()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTrades(It.IsAny<DateTime>()))
+            .Throws(new Exception())
+            .Throws(new Exception());
+        var obj = _aggregator.GetTradePositions(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Failure));
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenPowerServiceReturnsExceptionTwice_ReturnAggregatedTradePositionWithError()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTradesAsync(It.IsAny<DateTime>()))
+            .ThrowsAsync(new Exception())
+            .ThrowsAsync(new Exception());
+        var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Failure));
+    }
+
+    [Test]
+    public void GetTradePositionsRetries_WhenPowerServiceReturnsNullAndException_ReturnAggregatedTradePositionWithError()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTrades(It.IsAny<DateTime>()))
+            .Returns(() => null)
+            .Throws(new Exception());
+        var obj = _aggregator.GetTradePositions(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Failure));
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenPowerServiceReturnsNullAndException_ReturnAggregatedTradePositionWithError()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTradesAsync(It.IsAny<DateTime>()))
+            .ReturnsAsync(() => null)
+            .ThrowsAsync(new Exception());
+        var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Failure));
+    }
+}
+
 public class ValidResponseTests
 {
     ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
@@ -232,6 +398,42 @@ internal static class ZeroWaitOneMsRetry
         .WaitAndRetryAsync(
             0,
             attempt => TimeSpan.FromMicroseconds(1)
+        );
+
+    internal static IAsyncPolicy<IEnumerable<PowerTrade>> AsyncRetry = Policy.WrapAsync(asyncRetryExceptions, asyncRetryEmptyOrNull);
+
+}
+
+internal static class TwoSWaitOneSecRetry
+{
+    private static ISyncPolicy<IEnumerable<PowerTrade>> retryExceptions = Policy<IEnumerable<PowerTrade>>
+        .Handle<Exception>()
+        .WaitAndRetry(
+            2,
+            attempt => TimeSpan.FromSeconds(1)
+        );
+
+    private static ISyncPolicy<IEnumerable<PowerTrade>> retryEmptyOrNull = Policy<IEnumerable<PowerTrade>>
+        .HandleResult(r => r == null || !r.Any())
+        .WaitAndRetry(
+            2,
+            attempt => TimeSpan.FromSeconds(1)
+        );
+
+    internal static ISyncPolicy<IEnumerable<PowerTrade>> SyncRetry = Policy.Wrap(retryExceptions, retryEmptyOrNull);
+
+    private static IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetryExceptions = Policy<IEnumerable<PowerTrade>>
+        .Handle<Exception>()
+        .WaitAndRetryAsync(
+            2,
+            attempt => TimeSpan.FromSeconds(1)
+        );
+
+    private static IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetryEmptyOrNull = Policy<IEnumerable<PowerTrade>>
+        .HandleResult(r => r == null || !r.Any())
+        .WaitAndRetryAsync(
+            2,
+            attempt => TimeSpan.FromSeconds(1)
         );
 
     internal static IAsyncPolicy<IEnumerable<PowerTrade>> AsyncRetry = Policy.WrapAsync(asyncRetryExceptions, asyncRetryEmptyOrNull);
