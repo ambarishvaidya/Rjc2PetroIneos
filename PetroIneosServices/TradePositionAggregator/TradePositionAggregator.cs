@@ -5,12 +5,12 @@ namespace TradePositionData;
 
 public class TradePositionAggregator : ITradePositionDataProvider<PowerPeriod>
 {
-    public IEnumerable<PowerPeriod> GetTradePositions()
+    public IEnumerable<PowerPeriod> GetTradePositions(DateTime localDateTime)
     {
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<PowerPeriod>> GetTradePositionsAsync()
+    public Task<IEnumerable<PowerPeriod>> GetTradePositionsAsync(DateTime localDateTime)
     {
         throw new NotImplementedException();
     }
