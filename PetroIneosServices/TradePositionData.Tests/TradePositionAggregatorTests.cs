@@ -1,8 +1,37 @@
 ﻿using Moq;
+using PowerPeriodInterface;
 using Services;
 
-
 namespace TradePositionData.Tests;
+
+public class InvalidResponseTests
+{
+    TradePositionAggregator _aggregator;
+    Mock<IPowerService> _powerServiceMock;
+
+    [SetUp]
+    public void Setup()
+    {
+        _powerServiceMock = new Mock<IPowerService>();                        
+        _aggregator = new TradePositionAggregator(_powerServiceMock.Object);
+    }
+
+    [Test]
+    public void GetTradePositions_WhenPowerServiceThrowsException_ReturnAggregatedTradePositionWithException()
+    {
+        _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>())).Throws<Exception>();
+        IAggregatedTradePosition obj = _aggregator.GetTradePositions(DateTime.Now);
+        Assert.That(obj, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenPowerServiceThrowsException_ReturnAggregatedTradePositionWithException()
+    {
+        _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>())).Throws<Exception>();
+        IAggregatedTradePosition obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        Assert.That(obj, Is.Not.Null);
+    }    
+}
 
 public class DateTimeInputTests
 {   

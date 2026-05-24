@@ -16,4 +16,5 @@ public class AggregatedTradePosition : IAggregatedTradePosition
     public int TradePositionCount { get; }
     public bool IsSuccessful { get; }
     public Dictionary<string, double> TradePositions { get; internal set; }
+    public List<string> Errors { get; internal set; }
 }

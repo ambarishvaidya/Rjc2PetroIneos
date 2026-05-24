@@ -6,4 +6,5 @@ public interface IAggregatedTradePosition
     DateTime RequestedDateTime { get; }
     int TradePositionCount { get; }
     Dictionary<string, double> TradePositions { get; }
+    List<string> Errors { get; }
 }
