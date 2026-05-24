@@ -3,7 +3,7 @@ using Services;
 
 namespace TradePositionData;
 
-public class TradePositionAggregator : ITradePositionDataProvider<PowerPeriod>
+public class TradePositionAggregator : ITradePositionDataProvider<PowerTrade>
 {
     private int tolerance = 1;
     private readonly IPowerService _powerService;
@@ -13,20 +13,20 @@ public class TradePositionAggregator : ITradePositionDataProvider<PowerPeriod>
         _powerService = powerService;
     }
 
-    public IEnumerable<PowerPeriod> GetTradePositions(DateTime localDateTime)
+    public IEnumerable<PowerTrade> GetTradePositions(DateTime localDateTime)
     {
         if(!IsPassedLocalDateTimeValid(localDateTime))         
             throw new ArgumentException("DateTime has to local time within 1 minute tolerance.");
 
-        return null;
+        return _powerService.GetTrades(localDateTime);
     }
 
-    public Task<IEnumerable<PowerPeriod>> GetTradePositionsAsync(DateTime localDateTime)
+    public async Task<IEnumerable<PowerTrade>> GetTradePositionsAsync(DateTime localDateTime)
     {
         if (!IsPassedLocalDateTimeValid(localDateTime))        
             throw new ArgumentException("DateTime has to local time within 1 minute tolerance.");
 
-        return Task.FromResult<IEnumerable<PowerPeriod>>(null);
+        return await _powerService.GetTradesAsync(localDateTime);
     }
 
     private bool IsPassedLocalDateTimeValid(DateTime localDateTime)
