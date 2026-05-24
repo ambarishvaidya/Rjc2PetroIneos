@@ -1,26 +1,27 @@
 ﻿namespace TradePositionData.Tests;
 
 public class DateTimeInputTests
-{    
+{   
+    TradePositionAggregator _aggregator;
+
     [SetUp]
     public void Setup()
     {
+        _aggregator = new TradePositionAggregator();
     }
 
     [Test]
     public void GetTradePositions_WhenDateIsInPast_ThrowArgumentException()
-    {
-        var agregator = new TradePositionAggregator();
+    {        
         var pastDate = DateTime.Now.AddDays(-1);
-        Assert.Throws<ArgumentException>(() => agregator.GetTradePositions(pastDate));
+        Assert.Throws<ArgumentException>(() => _aggregator.GetTradePositions(pastDate));
     }
 
     [Test]
     public async Task GetTradePositionsAsync_WhenDateIsInPast_ThrowArgumentException()
     {
-        var agregator = new TradePositionAggregator();
         var pastDate = DateTime.Now.AddDays(-1);
-        Assert.ThrowsAsync<ArgumentException>(async () => await agregator.GetTradePositionsAsync(pastDate));
+        Assert.ThrowsAsync<ArgumentException>(async () => await _aggregator.GetTradePositionsAsync(pastDate));
     }
 
     [TestCase(-1)]
@@ -28,9 +29,8 @@ public class DateTimeInputTests
     [TestCase(1)]
     public void GetTradePositions_WhenDateIsWithinTolerance_DoesNotThrowArgumentException(int min)
     {
-        var agregator = new TradePositionAggregator();
         var pastDate = DateTime.Now.AddMinutes(min);
-        Assert.DoesNotThrow(() => agregator.GetTradePositions(pastDate));
+        Assert.DoesNotThrow(() => _aggregator.GetTradePositions(pastDate));
     }
 
     [TestCase(-1)]
@@ -38,25 +38,22 @@ public class DateTimeInputTests
     [TestCase(1)]
     public async Task GetTradePositionsAsync_WhenDateIsWithinTolerance_DoesNotThrowArgumentException(int min)
     {
-        var agregator = new TradePositionAggregator();
         var pastDate = DateTime.Now.AddMinutes(min);
-        Assert.DoesNotThrowAsync(async () => await agregator.GetTradePositionsAsync(pastDate));
+        Assert.DoesNotThrowAsync(async () => await _aggregator.GetTradePositionsAsync(pastDate));
     }
 
 
     [Test]
     public void GetTradePositions_WhenDateKindIsNotLocal_ThrowArgumentException()
     {
-        var agregator = new TradePositionAggregator();
         var pastDate = DateTime.UtcNow;
-        Assert.Throws<ArgumentException>(() => agregator.GetTradePositions(pastDate));
+        Assert.Throws<ArgumentException>(() => _aggregator.GetTradePositions(pastDate));
     }
 
     [Test]
     public async Task GetTradePositionsAsync_WhenDateKindIsNotLocal_ThrowArgumentException()
     {
-        var agregator = new TradePositionAggregator();
         var pastDate = DateTime.UtcNow;
-        Assert.ThrowsAsync<ArgumentException>(async () => await agregator.GetTradePositionsAsync(pastDate));
+        Assert.ThrowsAsync<ArgumentException>(async () => await _aggregator.GetTradePositionsAsync(pastDate));
     }
 }
