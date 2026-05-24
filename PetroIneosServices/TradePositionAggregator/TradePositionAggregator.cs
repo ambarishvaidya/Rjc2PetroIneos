@@ -2,13 +2,14 @@
 using PowerPeriodInterface;
 using Services;
 using System.Collections.Frozen;
-using System.Collections.Immutable;
 
 namespace TradePositionData;
 
 public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTradePosition>
 {
     private int TOLERANCE_IN_MINS = 1;
+    private readonly IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetry;
+    private readonly ISyncPolicy<IEnumerable<PowerTrade>> syncRetry;
     private readonly IPowerService _powerService;    
     private static FrozenDictionary<int, string> PeriodTimeMap = new Dictionary<int, string>()
     {
@@ -22,9 +23,26 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
 
     public TradePositionAggregator(IPowerService powerService)
     {
-        _powerService = powerService;
+        _powerService = powerService;        
+        asyncRetry = RetryPolicy.AsyncRetry;
+        syncRetry = RetryPolicy.SyncRetry;
+    }
 
-        
+    /// <summary>
+    /// This is used only by Test environment.
+    /// Service worker will not use this constructor as we are not 
+    /// exposing PowerService to outside world.
+    /// </summary>
+    /// <param name="powerService"></param>
+    /// <param name="asyncRetry"></param>
+    /// <param name="syncRetry"></param>
+    public TradePositionAggregator(IPowerService powerService, 
+        IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetry,
+        ISyncPolicy<IEnumerable<PowerTrade>> syncRetry)
+    {
+        _powerService = powerService;
+        this.asyncRetry = asyncRetry;
+        this.syncRetry = syncRetry;
     }
 
     public IAggregatedTradePosition GetTradePositions(DateTime localDateTime)
@@ -35,7 +53,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
 
         try
         {
-            var resp = RetryPolicy.SyncRetry.Execute(() => _powerService.GetTrades(localDateTime));
+            var resp = syncRetry.Execute(() => _powerService.GetTrades(localDateTime));
             (bool flowControl, IAggregatedTradePosition value) = ValidateGetTradesResponse(aggregatedTradePosition, resp);
             if (!flowControl)
             {
@@ -61,7 +79,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
 
         try
         {
-            var resp = await RetryPolicy.AsyncRetry.ExecuteAsync(() => _powerService.GetTradesAsync(localDateTime));
+            var resp = await asyncRetry.ExecuteAsync(() => _powerService.GetTradesAsync(localDateTime));
             (bool flowControl, IAggregatedTradePosition value) = ValidateGetTradesResponse(aggregatedTradePosition, resp);
             if (!flowControl)
             {

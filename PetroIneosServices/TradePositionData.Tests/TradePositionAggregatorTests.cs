@@ -1,4 +1,5 @@
 ﻿using Moq;
+using Polly;
 using PowerPeriodInterface;
 using Services;
 
@@ -13,7 +14,7 @@ public class ValidResponseTests
     public void Setup()
     {
         _powerServiceMock = new Mock<IPowerService>();
-        _aggregator = new TradePositionAggregator(_powerServiceMock.Object);
+        _aggregator = new TradePositionAggregator(_powerServiceMock.Object, ZeroWaitOneMsRetry.AsyncRetry, ZeroWaitOneMsRetry.SyncRetry);
     }
 
     [Test]
@@ -77,8 +78,8 @@ public class InvalidResponseTests
     [SetUp]
     public void Setup()
     {
-        _powerServiceMock = new Mock<IPowerService>();                        
-        _aggregator = new TradePositionAggregator(_powerServiceMock.Object);
+        _powerServiceMock = new Mock<IPowerService>();
+        _aggregator = new TradePositionAggregator(_powerServiceMock.Object, ZeroWaitOneMsRetry.AsyncRetry, ZeroWaitOneMsRetry.SyncRetry);
     }
 
     [Test]
@@ -150,7 +151,7 @@ public class DateTimeInputTests
     public void Setup()
     {
         var powerServiceMock = new Mock<IPowerService>();
-        _aggregator = new TradePositionAggregator(powerServiceMock.Object);
+        _aggregator = new TradePositionAggregator(powerServiceMock.Object, ZeroWaitOneMsRetry.AsyncRetry, ZeroWaitOneMsRetry.SyncRetry);
     }
 
     [Test]
@@ -199,4 +200,40 @@ public class DateTimeInputTests
         var pastDate = DateTime.UtcNow;
         Assert.ThrowsAsync<ArgumentException>(async () => await _aggregator.GetTradePositionsAsync(pastDate));
     }
+}
+
+internal static class ZeroWaitOneMsRetry
+{
+    private static ISyncPolicy<IEnumerable<PowerTrade>> retryExceptions = Policy<IEnumerable<PowerTrade>>
+        .Handle<Exception>()
+        .WaitAndRetry(
+            0,
+            attempt => TimeSpan.FromMicroseconds(1)
+        );
+
+    private static ISyncPolicy<IEnumerable<PowerTrade>> retryEmptyOrNull = Policy<IEnumerable<PowerTrade>>
+        .HandleResult(r => r == null || !r.Any())
+        .WaitAndRetry(
+            0,
+            attempt => TimeSpan.FromMicroseconds(1)
+        );
+
+    internal static ISyncPolicy<IEnumerable<PowerTrade>> SyncRetry = Policy.Wrap(retryExceptions, retryEmptyOrNull);
+
+    private static IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetryExceptions = Policy<IEnumerable<PowerTrade>>
+        .Handle<Exception>()
+        .WaitAndRetryAsync(
+            0,
+            attempt => TimeSpan.FromMicroseconds(1)
+        );
+
+    private static IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetryEmptyOrNull = Policy<IEnumerable<PowerTrade>>
+        .HandleResult(r => r == null || !r.Any())
+        .WaitAndRetryAsync(
+            0,
+            attempt => TimeSpan.FromMicroseconds(1)
+        );
+
+    internal static IAsyncPolicy<IEnumerable<PowerTrade>> AsyncRetry = Policy.WrapAsync(asyncRetryExceptions, asyncRetryEmptyOrNull);
+
 }
