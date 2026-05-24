@@ -26,9 +26,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
     {
         if(!IsPassedLocalDateTimeValid(localDateTime))         
             throw new ArgumentException("DateTime has to local time within 1 minute tolerance.");
-        IAggregatedTradePosition aggregatedTradePosition = new AggregatedTradePosition(localDateTime);
-        aggregatedTradePosition.Status = AggregatedTradePositionStatus.Failure;
-        aggregatedTradePosition.TradePositionCount = 0;
+        IAggregatedTradePosition aggregatedTradePosition = new AggregatedTradePosition(localDateTime);        
 
         try
         {
@@ -59,9 +57,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         if (!IsPassedLocalDateTimeValid(localDateTime))        
             throw new ArgumentException("DateTime has to local time within 1 minute tolerance.");
 
-        IAggregatedTradePosition aggregatedTradePosition = new AggregatedTradePosition(localDateTime);
-        aggregatedTradePosition.Status = AggregatedTradePositionStatus.Failure;
-        aggregatedTradePosition.TradePositionCount = 0;
+        IAggregatedTradePosition aggregatedTradePosition = new AggregatedTradePosition(localDateTime);        
 
         try
         {
