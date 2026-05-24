@@ -8,7 +8,7 @@ public class AggregatedTradePosition : IAggregatedTradePosition
     internal AggregatedTradePosition(DateTime requestedDateTime)
     {
         RequestedDateTime = requestedDateTime;
-        IsSuccessful = false;
+        Status = AggregatedTradePositionStatus.Failure;
     }
 
     public DateTime RequestedDateTime { get; }
@@ -16,4 +16,5 @@ public class AggregatedTradePosition : IAggregatedTradePosition
     public bool IsSuccessful { get; set; }
     public Dictionary<string, double> TradePositions { get; set; }
     public List<string> Errors { get; set; }
+    public AggregatedTradePositionStatus Status { get; set; }
 }
