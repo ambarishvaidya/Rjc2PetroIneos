@@ -7,7 +7,7 @@ public interface ITradePositionDataProvider<T> where T : class
     /// </summary>
     /// <param name="localDateTime"></param>
     /// <returns>Enumerable of <typeparamref name="T"/></returns>
-    IEnumerable<T> GetTradePositions(DateTime localDateTime);
+    T GetTradePositions(DateTime localDateTime);
 
     /// <summary>
     /// Request is made using local date time.
@@ -15,5 +15,5 @@ public interface ITradePositionDataProvider<T> where T : class
     /// </summary>
     /// <param name="localDateTime"></param>
     /// <returns>Task of Enumerable of <typeparamref name="T"/></returns>
-    Task<IEnumerable<T>> GetTradePositionsAsync(DateTime localDateTime);
+    Task<T> GetTradePositionsAsync(DateTime localDateTime);
 }
