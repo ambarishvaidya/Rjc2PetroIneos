@@ -30,7 +30,51 @@ public class InvalidResponseTests
         _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>())).Throws<Exception>();
         IAggregatedTradePosition obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
         Assert.That(obj, Is.Not.Null);
-    }    
+    }
+
+    [Test]
+    public void GetTradePositions_WhenPowerServiceReturnsNull_ReturnAggregatedTradePositionWithException()
+    {
+        _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>())).Returns(() => null);
+        IAggregatedTradePosition obj = _aggregator.GetTradePositions(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.Errors, Is.Not.Null);
+        //Assert.That(obj.Errors.Count, Is.EqualTo(1));
+        Assert.That(obj.Errors.First(), Is.EqualTo("Received null response from PowerService."));
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenPowerServiceReturnsNull_ReturnAggregatedTradePositionWithException()
+    {
+        _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>())).ReturnsAsync(() => null);
+        IAggregatedTradePosition obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.Errors, Is.Not.Null);
+        //Assert.That(obj.Errors.Count, Is.EqualTo(1));
+        Assert.That(obj.Errors.First(), Is.EqualTo("Received null response from PowerService."));
+    }
+
+    [Test]
+    public void GetTradePositions_WhenPowerServiceReturnsEmpty_ReturnAggregatedTradePositionWithException()
+    {
+        _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>())).Returns(() => Array.Empty<PowerTrade>());
+        IAggregatedTradePosition obj = _aggregator.GetTradePositions(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.Errors, Is.Not.Null);
+        //Assert.That(obj.Errors.Count, Is.EqualTo(1));
+        Assert.That(obj.Errors.First(), Is.EqualTo("Received empty response from PowerService."));
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenPowerServiceReturnsEmpty_ReturnAggregatedTradePositionWithException()
+    {
+        _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>())).ReturnsAsync(() => Array.Empty<PowerTrade>());
+        IAggregatedTradePosition obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        //Assert.That(obj, Is.Not.Null);
+        //Assert.That(obj.Errors, Is.Not.Null);
+        //Assert.That(obj.Errors.Count, Is.EqualTo(1));
+        Assert.That(obj.Errors.First(), Is.EqualTo("Received empty response from PowerService."));
+    }
 }
 
 public class DateTimeInputTests

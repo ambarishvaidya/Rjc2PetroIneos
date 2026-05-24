@@ -21,6 +21,8 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         try
         {
             var resp = _powerService.GetTrades(localDateTime);
+            if (resp == null) return new AggregatedTradePosition(localDateTime, 0, false) { Errors = new List<string> { "Received null response from PowerService." } };
+            if (!resp.Any()) return new AggregatedTradePosition(localDateTime, 0, false) { Errors = new List<string> { "Received empty response from PowerService." } };
         }
         catch (Exception ex)
         {
@@ -37,6 +39,8 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         try
         {
             var resp = await _powerService.GetTradesAsync(localDateTime);
+            if (resp == null) return new AggregatedTradePosition(localDateTime, 0, false) { Errors = new List<string> { "Received null response from PowerService." } };
+            if (!resp.Any()) return new AggregatedTradePosition(localDateTime, 0, false) { Errors = new List<string> { "Received empty response from PowerService." } };
         }
         catch (Exception ex)
         {
