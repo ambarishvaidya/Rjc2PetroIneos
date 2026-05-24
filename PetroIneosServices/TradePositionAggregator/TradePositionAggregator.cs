@@ -31,16 +31,10 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         try
         {
             var resp = _powerService.GetTrades(localDateTime);
-            if (resp == null)
+            (bool flowControl, IAggregatedTradePosition value) = ValidateGetTradesResponse(aggregatedTradePosition, resp);
+            if (!flowControl)
             {
-                aggregatedTradePosition.Errors = new List<string> { "Received null response from PowerService." };
-                return aggregatedTradePosition;
-            }
-
-            if (!resp.Any())
-            { 
-                aggregatedTradePosition.Errors = new List<string> { "Received empty response from PowerService." }; 
-                return aggregatedTradePosition;
+                return value;
             }
 
             ProcessPowerTrades(resp, aggregatedTradePosition);
@@ -52,6 +46,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         return aggregatedTradePosition;
     }
 
+
     public async Task<IAggregatedTradePosition> GetTradePositionsAsync(DateTime localDateTime)
     {
         if (!IsPassedLocalDateTimeValid(localDateTime))        
@@ -62,16 +57,10 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         try
         {
             var resp = await _powerService.GetTradesAsync(localDateTime);
-            if (resp == null)
+            (bool flowControl, IAggregatedTradePosition value) = ValidateGetTradesResponse(aggregatedTradePosition, resp);
+            if (!flowControl)
             {
-                aggregatedTradePosition.Errors = new List<string> { "Received null response from PowerService." };
-                return aggregatedTradePosition;
-            }
-
-            if (!resp.Any())
-            {
-                aggregatedTradePosition.Errors = new List<string> { "Received empty response from PowerService." };
-                return aggregatedTradePosition;
+                return value;
             }
 
             ProcessPowerTrades(resp, aggregatedTradePosition);
@@ -83,6 +72,23 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         }
         
         return aggregatedTradePosition;
+    }
+
+    private (bool flowControl, IAggregatedTradePosition value) ValidateGetTradesResponse(IAggregatedTradePosition aggregatedTradePosition, IEnumerable<PowerTrade> resp)
+    {
+        if (resp == null)
+        {
+            aggregatedTradePosition.Errors = new List<string> { "Received null response from PowerService." };
+            return (flowControl: false, value: aggregatedTradePosition);
+        }
+
+        if (!resp.Any())
+        {
+            aggregatedTradePosition.Errors = new List<string> { "Received empty response from PowerService." };
+            return (flowControl: false, value: aggregatedTradePosition);
+        }
+
+        return (flowControl: true, value: null);
     }
 
     private void ProcessPowerTrades(IEnumerable<PowerTrade> powerTrades, IAggregatedTradePosition aggregatedTradePosition)
