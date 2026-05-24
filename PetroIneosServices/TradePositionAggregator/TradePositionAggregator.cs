@@ -1,4 +1,5 @@
-﻿using PowerPeriodInterface;
+﻿using Polly;
+using PowerPeriodInterface;
 using Services;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
@@ -17,9 +18,13 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         { 19 , "17:00" }, { 20 , "18:00" }, { 21 , "19:00" }, { 22 , "20:00" }, { 23 , "21:00" }, { 24 , "22:00" }
     }.ToFrozenDictionary();
 
+    
+
     public TradePositionAggregator(IPowerService powerService)
     {
         _powerService = powerService;
+
+        
     }
 
     public IAggregatedTradePosition GetTradePositions(DateTime localDateTime)
@@ -30,7 +35,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
 
         try
         {
-            var resp = _powerService.GetTrades(localDateTime);
+            var resp = RetryPolicy.SyncRetry.Execute(() => _powerService.GetTrades(localDateTime));
             (bool flowControl, IAggregatedTradePosition value) = ValidateGetTradesResponse(aggregatedTradePosition, resp);
             if (!flowControl)
             {
@@ -56,7 +61,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
 
         try
         {
-            var resp = await _powerService.GetTradesAsync(localDateTime);
+            var resp = await RetryPolicy.AsyncRetry.ExecuteAsync(() => _powerService.GetTradesAsync(localDateTime));
             (bool flowControl, IAggregatedTradePosition value) = ValidateGetTradesResponse(aggregatedTradePosition, resp);
             if (!flowControl)
             {
@@ -132,4 +137,40 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
 
         return (nt - lt).Duration() <= TimeSpan.FromMinutes(TOLERANCE_IN_MINS);
     }
+}
+
+internal static class RetryPolicy
+{
+    private static ISyncPolicy<IEnumerable<PowerTrade>> retryExceptions = Policy<IEnumerable<PowerTrade>>
+        .Handle<Exception>()
+        .WaitAndRetry(
+            3,
+            attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))
+        );
+
+    private static ISyncPolicy<IEnumerable<PowerTrade>> retryEmptyOrNull = Policy<IEnumerable<PowerTrade>>
+        .HandleResult(r => r == null || !r.Any())
+        .WaitAndRetry(
+            3,
+            attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))
+        );
+
+    internal static ISyncPolicy<IEnumerable<PowerTrade>> SyncRetry = Policy.Wrap(retryExceptions, retryEmptyOrNull);
+
+    private static IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetryExceptions = Policy<IEnumerable<PowerTrade>>
+        .Handle<Exception>()
+        .WaitAndRetryAsync(
+            3,
+            attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))
+        );
+
+    private static IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetryEmptyOrNull = Policy<IEnumerable<PowerTrade>>
+        .HandleResult(r => r == null || !r.Any())
+        .WaitAndRetryAsync(
+            3,
+            attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))
+        );
+
+    internal static IAsyncPolicy<IEnumerable<PowerTrade>> AsyncRetry = Policy.WrapAsync(asyncRetryExceptions, asyncRetryEmptyOrNull);
+
 }
