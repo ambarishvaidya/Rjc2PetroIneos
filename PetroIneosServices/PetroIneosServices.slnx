@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="PowerPeriodInterface/PowerPeriodInterface.csproj" />
+  <Project Path="PowerPeriodService/PowerPeriodService.csproj" />
+  <Project Path="TestPowerPeriodProjects/TestPowerPeriodProjects.csproj" />
+  <Project Path="TradePositionAggregator/TradePositionData.csproj" />
+  <Project Path="TradePositionPersistence/TradePositionPersistence.csproj" />
+</Solution>
