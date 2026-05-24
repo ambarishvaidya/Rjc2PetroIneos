@@ -88,7 +88,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
             return (flowControl: false, value: aggregatedTradePosition);
         }
 
-        return (flowControl: true, value: null);
+        return (flowControl: true, value: aggregatedTradePosition);
     }
 
     private void ProcessPowerTrades(IEnumerable<PowerTrade> powerTrades, IAggregatedTradePosition aggregatedTradePosition)
