@@ -123,16 +123,15 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
     private void ProcessPowerTrades(IEnumerable<PowerTrade> powerTrades, IAggregatedTradePosition aggregatedTradePosition)
     {
         var tradePositions = new Dictionary<string, double>();
-        var errors = new List<string>();
         var count = 0;
 
         foreach (var powerTrade in powerTrades)
         {            
             foreach(var period in powerTrade.Periods)
             {
-                if (PeriodTimeMap.TryGetValue(period.Period, out var time))
+                if (!PeriodTimeMap.TryGetValue(period.Period, out var time))
                 {
-                    errors.Add($"Period {period.Period} is not supported. Igorning {powerTrade.Date} [{period.Period} : {period.Volume}].");
+                    aggregatedTradePosition.Errors.Add($"Period {period.Period} is not supported. Igorning {powerTrade.Date} [{period.Period} : {period.Volume}].");
                 }
                 else
                 {
@@ -144,10 +143,9 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
             }
         }
             
-        aggregatedTradePosition.TradePositionCount = count;
-        aggregatedTradePosition.Errors.AddRange(errors);
+        aggregatedTradePosition.TradePositionCount = count;        
         aggregatedTradePosition.TradePositions = tradePositions;
-        aggregatedTradePosition.Status = errors.Any() ? AggregatedTradePositionStatus.SuccessWithErrors : AggregatedTradePositionStatus.Success;
+        aggregatedTradePosition.Status = aggregatedTradePosition.Errors.Any() ? AggregatedTradePositionStatus.SuccessWithErrors : AggregatedTradePositionStatus.Success;
     }
 
     private bool IsPassedLocalDateTimeValid(DateTime localDateTime)

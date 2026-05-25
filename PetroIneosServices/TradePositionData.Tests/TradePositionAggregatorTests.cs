@@ -241,6 +241,36 @@ public class ValidResponseTests
         //Assert.That(obj.IsSuccessful, Is.True);
         Assert.That(obj.TradePositionCount, Is.EqualTo(30));
     }
+
+    [Test]
+    public async Task GetTradePositions_WhenPowerServiceReturnsMultipleResponse_VerifyResults()
+    {
+        var date = DateTime.Now;
+        var multiPowerTrades =
+            new List<PowerTrade>() { PowerTrade.Create(date, 10), PowerTrade.Create(date, 10), PowerTrade.Create(date, 10) };
+        _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>()))
+            .Returns(() => multiPowerTrades);
+        var obj = _aggregator.GetTradePositions(DateTime.Now);
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.TradePositions.Count, Is.EqualTo(10));
+        Assert.That(obj.TradePositions.Keys.Contains("23:00"), Is.True);
+        Assert.That(obj.TradePositions.Keys.Contains("00:00"), Is.True);
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenPowerServiceReturnsMultipleResponse_VerifyResults()
+    {
+        var date = DateTime.Now;
+        var simglePowerTrade =
+            new List<PowerTrade>() { PowerTrade.Create(date, 10), PowerTrade.Create(date, 10), PowerTrade.Create(date, 10) };
+        _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>()))
+            .ReturnsAsync(() => simglePowerTrade);
+        var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);        
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.TradePositions.Count, Is.EqualTo(10));
+        Assert.That(obj.TradePositions.Keys.Contains("23:00"), Is.True);
+        Assert.That(obj.TradePositions.Keys.Contains("00:00"), Is.True);
+    }
 }
 public class InvalidResponseTests
 {

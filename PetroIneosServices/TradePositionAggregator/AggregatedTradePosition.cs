@@ -9,6 +9,7 @@ public class AggregatedTradePosition : IAggregatedTradePosition
     {
         RequestedDateTime = requestedDateTime;
         Status = AggregatedTradePositionStatus.Failure;
+        Errors = new List<string>();
     }
 
     public DateTime RequestedDateTime { get; }
