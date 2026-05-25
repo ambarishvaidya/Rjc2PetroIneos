@@ -88,8 +88,8 @@ public class RetryTests
             .Returns(() => null)
             .Returns(() => simglePowerTrade);
         var obj = _aggregator.GetTradePositions(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Success));
         Assert.That(obj.TradePositionCount, Is.EqualTo(1));
     }
 
@@ -101,8 +101,8 @@ public class RetryTests
             .ReturnsAsync(() => null)
             .ReturnsAsync(() => simglePowerTrade);
         var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Success));
         Assert.That(obj.TradePositionCount, Is.EqualTo(1));
     }
 
@@ -114,8 +114,8 @@ public class RetryTests
             .Throws(new Exception())
             .Returns(() => simglePowerTrade);
         var obj = _aggregator.GetTradePositions(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Success));
         Assert.That(obj.TradePositionCount, Is.EqualTo(1));
     }
 
@@ -127,8 +127,8 @@ public class RetryTests
             .ThrowsAsync(new Exception())
             .ReturnsAsync(() => simglePowerTrade);
         var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Success));
         Assert.That(obj.TradePositionCount, Is.EqualTo(1));
     }
 
@@ -140,8 +140,8 @@ public class RetryTests
             .Returns(() => Array.Empty<PowerTrade>())
             .Returns(() => simglePowerTrade);
         var obj = _aggregator.GetTradePositions(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Success));
         Assert.That(obj.TradePositionCount, Is.EqualTo(1));
     }
 
@@ -153,8 +153,8 @@ public class RetryTests
             .ReturnsAsync(() => Array.Empty<PowerTrade>())
             .ReturnsAsync(() => simglePowerTrade);
         var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Success));
         Assert.That(obj.TradePositionCount, Is.EqualTo(1));
     }
 
@@ -166,7 +166,7 @@ public class RetryTests
             .Returns(() => Array.Empty<PowerTrade>())
             .Returns(() => Array.Empty<PowerTrade>());
         var obj = _aggregator.GetTradePositions(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
+        Assert.That(obj, Is.Not.Null);
         Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Failure));        
     }
 
@@ -178,8 +178,7 @@ public class RetryTests
             .ReturnsAsync(() => Array.Empty<PowerTrade>())
             .ReturnsAsync(() => Array.Empty<PowerTrade>());
         var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);        
         Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Failure));
     }
 
@@ -191,7 +190,7 @@ public class RetryTests
             .Throws(new Exception())
             .Throws(new Exception());
         var obj = _aggregator.GetTradePositions(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
+        Assert.That(obj, Is.Not.Null);
         Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Failure));
     }
 
@@ -203,8 +202,7 @@ public class RetryTests
             .ThrowsAsync(new Exception())
             .ThrowsAsync(new Exception());
         var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);        
         Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Failure));
     }
 
@@ -216,7 +214,7 @@ public class RetryTests
             .Returns(() => null)
             .Throws(new Exception());
         var obj = _aggregator.GetTradePositions(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
+        Assert.That(obj, Is.Not.Null);
         Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Failure));
     }
 
@@ -228,8 +226,7 @@ public class RetryTests
             .ReturnsAsync(() => null)
             .ThrowsAsync(new Exception());
         var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);
         Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Failure));
     }
 }
@@ -255,8 +252,8 @@ public class ValidResponseTests
         _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>()))
             .Returns(() => simglePowerTrade);
         var obj = _aggregator.GetTradePositions(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Success));
         Assert.That(obj.TradePositionCount, Is.EqualTo(1));
     }
 
@@ -267,8 +264,8 @@ public class ValidResponseTests
         _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>()))
             .ReturnsAsync(() => simglePowerTrade);
         var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Success));
         Assert.That(obj.TradePositionCount, Is.EqualTo(1));
     }
 
@@ -281,8 +278,8 @@ public class ValidResponseTests
         _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>()))
             .Returns(() => multiPowerTrade);
         var obj = _aggregator.GetTradePositions(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Success));
         Assert.That(obj.TradePositionCount, Is.EqualTo(30));
 
     }
@@ -296,8 +293,8 @@ public class ValidResponseTests
         _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>()))
             .ReturnsAsync(() => simglePowerTrade);
         var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.IsSuccessful, Is.True);
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Status, Is.EqualTo(AggregatedTradePositionStatus.Success));
         Assert.That(obj.TradePositionCount, Is.EqualTo(30));
     }
 
@@ -366,9 +363,9 @@ public class InvalidResponseTests
     {
         _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>())).Returns(() => null);
         IAggregatedTradePosition obj = _aggregator.GetTradePositions(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.Errors, Is.Not.Null);
-        //Assert.That(obj.Errors.Count, Is.EqualTo(1));
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Errors, Is.Not.Null);
+        Assert.That(obj.Errors.Count, Is.EqualTo(1));
         Assert.That(obj.Errors.First(), Is.EqualTo("Received null response from PowerService."));
     }
 
@@ -377,9 +374,9 @@ public class InvalidResponseTests
     {
         _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>())).ReturnsAsync(() => null);
         IAggregatedTradePosition obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.Errors, Is.Not.Null);
-        //Assert.That(obj.Errors.Count, Is.EqualTo(1));
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Errors, Is.Not.Null);
+        Assert.That(obj.Errors.Count, Is.EqualTo(1));
         Assert.That(obj.Errors.First(), Is.EqualTo("Received null response from PowerService."));
     }
 
@@ -388,9 +385,9 @@ public class InvalidResponseTests
     {
         _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>())).Returns(() => Array.Empty<PowerTrade>());
         IAggregatedTradePosition obj = _aggregator.GetTradePositions(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.Errors, Is.Not.Null);
-        //Assert.That(obj.Errors.Count, Is.EqualTo(1));
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Errors, Is.Not.Null);
+        Assert.That(obj.Errors.Count, Is.EqualTo(1));
         Assert.That(obj.Errors.First(), Is.EqualTo("Received empty response from PowerService."));
     }
 
@@ -399,9 +396,9 @@ public class InvalidResponseTests
     {
         _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>())).ReturnsAsync(() => Array.Empty<PowerTrade>());
         IAggregatedTradePosition obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
-        //Assert.That(obj, Is.Not.Null);
-        //Assert.That(obj.Errors, Is.Not.Null);
-        //Assert.That(obj.Errors.Count, Is.EqualTo(1));
+        Assert.That(obj, Is.Not.Null);
+        Assert.That(obj.Errors, Is.Not.Null);
+        Assert.That(obj.Errors.Count, Is.EqualTo(1));
         Assert.That(obj.Errors.First(), Is.EqualTo("Received empty response from PowerService."));
     }
 }
