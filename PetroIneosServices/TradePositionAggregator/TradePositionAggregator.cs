@@ -1,4 +1,5 @@
-﻿using Polly;
+﻿using Microsoft.Extensions.Logging;
+using Polly;
 using PowerPeriodInterface;
 using Services;
 using System.Collections.Frozen;
@@ -11,6 +12,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
     private readonly IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetry;
     private readonly ISyncPolicy<IEnumerable<PowerTrade>> syncRetry;
     private readonly IPowerService _powerService;    
+    private readonly ILogger _logger;
     private static FrozenDictionary<int, string> PeriodTimeMap = new Dictionary<int, string>()
     {
         { 1 , "23:00" }, { 2 , "00:00" }, { 3 , "01:00" }, { 4 , "02:00" }, { 5 , "03:00" }, { 6 , "04:00" }, 
@@ -21,9 +23,11 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
 
     
 
-    public TradePositionAggregator(IPowerService powerService)
+    public TradePositionAggregator(IPowerService powerService,
+        ILogger<TradePositionAggregator> logger)
     {
         _powerService = powerService;        
+        _logger = logger;
         asyncRetry = RetryPolicy.AsyncRetry;
         syncRetry = RetryPolicy.SyncRetry;
     }
@@ -37,10 +41,12 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
     /// <param name="asyncRetry"></param>
     /// <param name="syncRetry"></param>
     public TradePositionAggregator(IPowerService powerService, 
+        ILogger<TradePositionAggregator> logger,
         IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetry,
         ISyncPolicy<IEnumerable<PowerTrade>> syncRetry)
     {
         _powerService = powerService;
+        _logger = logger;
         this.asyncRetry = asyncRetry;
         this.syncRetry = syncRetry;
     }

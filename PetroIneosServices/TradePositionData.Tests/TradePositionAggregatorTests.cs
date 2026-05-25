@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Logging;
+using Moq;
 using Polly;
 using PowerPeriodInterface;
 using Services;
@@ -8,13 +9,16 @@ namespace TradePositionData.Tests;
 public class RetryTests
 {
     ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
+    Mock<ILogger<TradePositionAggregator>> _logger;
     Mock<IPowerService> _powerServiceMock;
 
     [SetUp]
     public void Setup()
     {
         _powerServiceMock = new Mock<IPowerService>();
-        _aggregator = new TradePositionAggregator(_powerServiceMock.Object, TwoSWaitOneSecRetry.AsyncRetry, TwoSWaitOneSecRetry.SyncRetry);
+        _logger = new Mock<ILogger<TradePositionAggregator>>();
+        _aggregator = new TradePositionAggregator(_powerServiceMock.Object, _logger.Object, 
+            TwoSWaitOneSecRetry.AsyncRetry, TwoSWaitOneSecRetry.SyncRetry);
     }
 
     [Test]
@@ -174,13 +178,15 @@ public class RetryTests
 public class ValidResponseTests
 {
     ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
+    Mock<ILogger<TradePositionAggregator>> _logger;
     Mock<IPowerService> _powerServiceMock;
 
     [SetUp]
     public void Setup()
     {
         _powerServiceMock = new Mock<IPowerService>();
-        _aggregator = new TradePositionAggregator(_powerServiceMock.Object, ZeroWaitOneMsRetry.AsyncRetry, ZeroWaitOneMsRetry.SyncRetry);
+        _logger = new Mock<ILogger<TradePositionAggregator>>();
+        _aggregator = new TradePositionAggregator(_powerServiceMock.Object, _logger.Object, ZeroWaitOneMsRetry.AsyncRetry, ZeroWaitOneMsRetry.SyncRetry);
     }
 
     [Test]
@@ -239,13 +245,15 @@ public class ValidResponseTests
 public class InvalidResponseTests
 {
     ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
+    Mock<ILogger<TradePositionAggregator>> _logger;
     Mock<IPowerService> _powerServiceMock;
 
     [SetUp]
     public void Setup()
     {
         _powerServiceMock = new Mock<IPowerService>();
-        _aggregator = new TradePositionAggregator(_powerServiceMock.Object, ZeroWaitOneMsRetry.AsyncRetry, ZeroWaitOneMsRetry.SyncRetry);
+        _logger = new Mock<ILogger<TradePositionAggregator>>();
+        _aggregator = new TradePositionAggregator(_powerServiceMock.Object, _logger.Object, ZeroWaitOneMsRetry.AsyncRetry, ZeroWaitOneMsRetry.SyncRetry);
     }
 
     [Test]
@@ -312,12 +320,15 @@ public class InvalidResponseTests
 public class DateTimeInputTests
 {
     ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
+    Mock<ILogger<TradePositionAggregator>> _logger;
 
     [SetUp]
     public void Setup()
     {
         var powerServiceMock = new Mock<IPowerService>();
-        _aggregator = new TradePositionAggregator(powerServiceMock.Object, ZeroWaitOneMsRetry.AsyncRetry, ZeroWaitOneMsRetry.SyncRetry);
+        _logger = new Mock<ILogger<TradePositionAggregator>>();
+        _aggregator = new TradePositionAggregator(powerServiceMock.Object, _logger.Object, 
+            ZeroWaitOneMsRetry.AsyncRetry, ZeroWaitOneMsRetry.SyncRetry);
     }
 
     [Test]
