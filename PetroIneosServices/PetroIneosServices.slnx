@@ -3,5 +3,6 @@
   <Project Path="PowerPeriodService/PowerPeriodService.csproj" />
   <Project Path="TradePositionAggregator/TradePositionData.csproj" />
   <Project Path="TradePositionData.Tests/TradePositionData.Tests.csproj" Id="5cdb6e08-5822-4229-ab74-4f8ff00d7417" />
+  <Project Path="TradePositionPersistence.Tests/TradePositionPersistence.Tests.csproj" Id="60029b7b-12a2-4f0b-bd02-0a05d2b1ba25" />
   <Project Path="TradePositionPersistence/TradePositionPersistence.csproj" />
 </Solution>
