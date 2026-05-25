@@ -9,10 +9,12 @@ namespace TradePositionData;
 public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTradePosition>
 {
     private int TOLERANCE_IN_MINS = 1;
+    private const string KEY_FORMAT = "ddMMyyHHmmssfff";
     private readonly IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetry;
     private readonly ISyncPolicy<IEnumerable<PowerTrade>> syncRetry;
     private readonly IPowerService _powerService;    
     private readonly ILogger _logger;
+    private string _logKey = " - ";
     private static FrozenDictionary<int, string> PeriodTimeMap = new Dictionary<int, string>()
     {
         { 1 , "23:00" }, { 2 , "00:00" }, { 3 , "01:00" }, { 4 , "02:00" }, { 5 , "03:00" }, { 6 , "04:00" }, 
@@ -53,23 +55,35 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
 
     public IAggregatedTradePosition GetTradePositions(DateTime localDateTime)
     {
-        if(!IsPassedLocalDateTimeValid(localDateTime))         
+        _logKey = GetLogKey(localDateTime) + "-S";
+        LogInformation($"Request received for trade positions at {localDateTime} ");
+
+        if (!IsPassedLocalDateTimeValid(localDateTime))
             throw new ArgumentException("DateTime has to local time within 1 minute tolerance.");
-        IAggregatedTradePosition aggregatedTradePosition = new AggregatedTradePosition(localDateTime);        
+        
+        IAggregatedTradePosition aggregatedTradePosition = new AggregatedTradePosition(localDateTime);
+        
 
         try
         {
+            LogInformation($"Fetching trade positions for {localDateTime} ");
+
             var resp = syncRetry.Execute(() => _powerService.GetTrades(localDateTime));
             (bool flowControl, IAggregatedTradePosition value) = ValidateGetTradesResponse(aggregatedTradePosition, resp);
             if (!flowControl)
             {
+                value.Status = AggregatedTradePositionStatus.Failure;
+                LogCritical("Aborting processing due to invalid response from PowerService.");
                 return value;
             }
-
+            
+            LogInformation($"Processing trade positions for {localDateTime} ");
             ProcessPowerTrades(resp, aggregatedTradePosition);
         }
         catch (Exception ex)
-        {
+        {            
+            LogError($"Exception in Processing trade positions for {localDateTime} ");
+            aggregatedTradePosition.Status = AggregatedTradePositionStatus.Failure;
             aggregatedTradePosition.Errors = new List<string> { ex.Message };
         }
         return aggregatedTradePosition;
@@ -78,6 +92,9 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
 
     public async Task<IAggregatedTradePosition> GetTradePositionsAsync(DateTime localDateTime)
     {
+        _logKey = GetLogKey(localDateTime) + "-A";
+        LogInformation($"Request received for trade positions at {localDateTime} ");
+
         if (!IsPassedLocalDateTimeValid(localDateTime))        
             throw new ArgumentException("DateTime has to local time within 1 minute tolerance.");
 
@@ -85,34 +102,48 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
 
         try
         {
+            LogInformation($"Fetching trade positions for {localDateTime} ");
             var resp = await asyncRetry.ExecuteAsync(() => _powerService.GetTradesAsync(localDateTime));
+
             (bool flowControl, IAggregatedTradePosition value) = ValidateGetTradesResponse(aggregatedTradePosition, resp);
             if (!flowControl)
             {
-                return value;
+                value.Status = AggregatedTradePositionStatus.Failure;
+                LogCritical("Aborting processing due to invalid response from PowerService.");
+                return value; 
             }
 
+            LogInformation($"Processing trade positions for {localDateTime} ");
             ProcessPowerTrades(resp, aggregatedTradePosition);
-
         }
         catch (Exception ex)
         {
-            aggregatedTradePosition.Errors = new List<string> { ex.Message } ;
+            LogError($"Exception in Processing trade positions for {localDateTime} ");
+            aggregatedTradePosition.Status = AggregatedTradePositionStatus.Failure;
+            aggregatedTradePosition.Errors = new List<string> { ex.Message };
         }
         
         return aggregatedTradePosition;
+    }
+
+    private string GetLogKey(DateTime dt)
+    {
+        var kind = dt.Kind;
+        return dt.ToString(KEY_FORMAT) + Enum.GetName(typeof(DateTimeKind), kind);
     }
 
     private (bool flowControl, IAggregatedTradePosition value) ValidateGetTradesResponse(IAggregatedTradePosition aggregatedTradePosition, IEnumerable<PowerTrade> resp)
     {
         if (resp == null)
         {
+            LogError("Received null response from PowerService.");
             aggregatedTradePosition.Errors = new List<string> { "Received null response from PowerService." };
             return (flowControl: false, value: aggregatedTradePosition);
         }
 
         if (!resp.Any())
         {
+            LogError("Received empty response from PowerService.");
             aggregatedTradePosition.Errors = new List<string> { "Received empty response from PowerService." };
             return (flowControl: false, value: aggregatedTradePosition);
         }
@@ -131,6 +162,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
             {
                 if (!PeriodTimeMap.TryGetValue(period.Period, out var time))
                 {
+                    LogWarn($"Period {period.Period} is not supported. Igorning {powerTrade.Date} [{period.Period} : {period.Volume}].");
                     aggregatedTradePosition.Errors.Add($"Period {period.Period} is not supported. Igorning {powerTrade.Date} [{period.Period} : {period.Volume}].");
                 }
                 else
@@ -150,14 +182,52 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
 
     private bool IsPassedLocalDateTimeValid(DateTime localDateTime)
     {
-        if (localDateTime.Kind != DateTimeKind.Local) return false;            
+        if (localDateTime.Kind != DateTimeKind.Local)
+        { 
+            LogError("Passed DateTime is not of Local kind.");
+            return false; 
+        }
 
         var now = DateTime.Now;
 
         var lt = new DateTime(localDateTime.Year, localDateTime.Month, localDateTime.Day, localDateTime.Hour, localDateTime.Minute, localDateTime.Second);
         var nt = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second);
 
-        return (nt - lt).Duration() <= TimeSpan.FromMinutes(TOLERANCE_IN_MINS);
+        var isValid = (nt - lt).Duration() <= TimeSpan.FromMinutes(TOLERANCE_IN_MINS);
+        if (!isValid)
+        {
+            LogError($"Passed DateTime is not within the valid tolerance of +/- {TOLERANCE_IN_MINS}.");
+        }
+        return isValid;
+    }
+
+    private void LogInformation(string message)
+    {
+        if (_logger.IsEnabled(LogLevel.Information))        
+            _logger.LogInformation($"{_logKey} : {message}");        
+    }
+
+    private void LogWarn(string message)
+    {
+        if (_logger.IsEnabled(LogLevel.Warning))
+            _logger.LogWarning($"{_logKey} : {message}");
+    }
+
+    private void LogError(string message)
+    {
+        if (_logger.IsEnabled(LogLevel.Error))
+            _logger.LogError($"{_logKey} : {message}");
+    }
+
+    private void LogDebug(string message)
+    {
+        if (_logger.IsEnabled(LogLevel.Debug))
+            _logger.LogDebug($"{_logKey} : {message}");
+    }
+    private void LogCritical(string message)
+    {
+        if (_logger.IsEnabled(LogLevel.Critical))
+            _logger.LogCritical($"{_logKey} : {message}");
     }
 }
 
