@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\PowerPeriodInterface\PowerPeriodInterface.csproj" />
     <ProjectReference Include="..\TradePositionAggregator\TradePositionData.csproj" />
+    <ProjectReference Include="..\TradePositionPersistence\TradePositionPersistence.csproj" />
   </ItemGroup>
 
   <ItemGroup>

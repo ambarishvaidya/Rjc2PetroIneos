@@ -2,5 +2,5 @@
 
 public interface ITradePositionDataPersistence
 {
-    Task SaveAggregatedPositions();
+    Task SaveAggregatedPositions(IAggregatedTradePosition position);
 }

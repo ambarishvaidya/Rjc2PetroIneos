@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using PowerPeriodInterface;
@@ -9,6 +10,7 @@ public class TestFileNameCreation
 {
     Mock<ILogger<TradePositionCsvWriter>> _loggerMock;
     Mock<IAggregatedTradePosition> _positionMock;
+    Mock<IConfiguration> _configurationMock;
     TradePositionCsvWriter _writer;
 
     [SetUp]
@@ -16,7 +18,8 @@ public class TestFileNameCreation
     {
         _loggerMock = new Mock<ILogger<TradePositionCsvWriter>>();
         _positionMock = new Mock<IAggregatedTradePosition>();
-        _writer = new TradePositionCsvWriter(_loggerMock.Object, _positionMock.Object);
+        _configurationMock = new Mock<IConfiguration>();
+        _writer = new TradePositionCsvWriter(_loggerMock.Object, _configurationMock.Object);
     }
 
     [TestCase(2024, 12, 1, 12, 30, 59, "PowerPosition_20241201_1230.csv")]
