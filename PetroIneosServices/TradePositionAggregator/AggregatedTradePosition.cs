@@ -18,4 +18,9 @@ public class AggregatedTradePosition : IAggregatedTradePosition
     public Dictionary<string, double> TradePositions { get; set; }
     public List<string> Errors { get; set; }
     public AggregatedTradePositionStatus Status { get; set; }
+
+    public override string ToString()
+    {
+        return $" {RequestedDateTime} [{Enum.GetName(typeof(AggregatedTradePositionStatus), Status)}]";
+    }
 }
