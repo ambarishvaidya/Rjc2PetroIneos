@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Polly" Version="8.6.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PowerPeriodInterface\PowerPeriodInterface.csproj" />
 	<Reference Include="PowerService">
 		<HintPath>Libs\PowerService.dll</HintPath>
