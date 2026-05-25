@@ -4,6 +4,7 @@ namespace PowerPeriodInterface;
 
 public interface IAggregatedTradePosition
 {
+    Guid Id { get; }
     AggregatedTradePositionStatus Status { get; set; }
     DateTime RequestedDateTime { get; }
     int TradePositionCount { get; set; }

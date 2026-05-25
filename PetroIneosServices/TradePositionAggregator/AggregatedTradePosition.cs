@@ -7,6 +7,7 @@ public class AggregatedTradePosition : IAggregatedTradePosition
     private AggregatedTradePosition() { }
     internal AggregatedTradePosition(DateTime requestedDateTime)
     {
+        Id = Guid.NewGuid();
         RequestedDateTime = requestedDateTime;
         Status = AggregatedTradePositionStatus.Failure;
         Errors = new List<string>();
@@ -19,8 +20,10 @@ public class AggregatedTradePosition : IAggregatedTradePosition
     public List<string> Errors { get; set; }
     public AggregatedTradePositionStatus Status { get; set; }
 
+    public Guid Id { get; }
+
     public override string ToString()
     {
-        return $" {RequestedDateTime} [{Enum.GetName(typeof(AggregatedTradePositionStatus), Status)}]";
+        return $"{Id} : {RequestedDateTime} [{Enum.GetName(typeof(AggregatedTradePositionStatus), Status)}]";
     }
 }
