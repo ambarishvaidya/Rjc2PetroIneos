@@ -6,6 +6,65 @@ using Services;
 
 namespace TradePositionData.Tests;
 
+public class LoggingTests
+{
+    ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
+    Mock<ILogger<TradePositionAggregator>> _logger;
+    Mock<IPowerService> _powerServiceMock;
+
+    [SetUp]
+    public void Setup()
+    {
+        _powerServiceMock = new Mock<IPowerService>();
+        _logger = new Mock<ILogger<TradePositionAggregator>>();
+        _aggregator = new TradePositionAggregator(_powerServiceMock.Object, _logger.Object,
+            TwoSWaitOneSecRetry.AsyncRetry, TwoSWaitOneSecRetry.SyncRetry);
+
+        _logger.Setup(l => l.IsEnabled(LogLevel.Critical)).Returns(true);
+        _logger.Setup(l => l.IsEnabled(LogLevel.Error)).Returns(true);
+        _logger.Setup(l => l.IsEnabled(LogLevel.Warning)).Returns(true);
+        _logger.Setup(l => l.IsEnabled(LogLevel.Information)).Returns(true);
+        _logger.Setup(l => l.IsEnabled(LogLevel.Debug)).Returns(true);
+    }
+        
+    [Test]
+    public void GetTradePositions_WhenCriticalError_LogRecords()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTrades(It.IsAny<DateTime>()))
+            .Returns(() => null)
+            .Throws(() => new Exception());            
+        var obj = _aggregator.GetTradePositions(DateTime.Now);
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Critical,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetTradePositionsAsync_WhenCriticalError_LogRecords()
+    {
+        var simglePowerTrade = new List<PowerTrade>() { PowerTrade.Create(DateTime.Now, 1) };
+        _powerServiceMock.SetupSequence(s => s.GetTradesAsync(It.IsAny<DateTime>()))
+            .ReturnsAsync(() => null)
+            .ReturnsAsync(() => null)
+            .ReturnsAsync(() => null);
+        var obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Critical,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+            Times.Once);
+    }
+}
+
 public class RetryTests
 {
     ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
