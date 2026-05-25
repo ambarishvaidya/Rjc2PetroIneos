@@ -468,7 +468,7 @@ public class DateTimeInputTests
 internal static class ZeroWaitOneMsRetry
 {
     private static ISyncPolicy<IEnumerable<PowerTrade>> retryExceptions = Policy<IEnumerable<PowerTrade>>
-        .Handle<Exception>()
+        .Handle<PowerServiceException>()
         .WaitAndRetry(
             0,
             attempt => TimeSpan.FromMicroseconds(1)
@@ -484,7 +484,7 @@ internal static class ZeroWaitOneMsRetry
     internal static ISyncPolicy<IEnumerable<PowerTrade>> SyncRetry = Policy.Wrap(retryExceptions, retryEmptyOrNull);
 
     private static IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetryExceptions = Policy<IEnumerable<PowerTrade>>
-        .Handle<Exception>()
+        .Handle<PowerServiceException>()
         .WaitAndRetryAsync(
             0,
             attempt => TimeSpan.FromMicroseconds(1)

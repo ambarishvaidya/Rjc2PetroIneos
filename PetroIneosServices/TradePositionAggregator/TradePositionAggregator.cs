@@ -249,8 +249,8 @@ internal static class RetryPolicy
 
     internal static ISyncPolicy<IEnumerable<PowerTrade>> SyncRetry = Policy.Wrap(retryExceptions, retryEmptyOrNull);
 
-    private static IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetryExceptions = Policy<IEnumerable<PowerTrade>>
-        .Handle<Exception>()
+    private static IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetryPowerServiceExceptions = Policy<IEnumerable<PowerTrade>>
+        .Handle<PowerServiceException>()
         .WaitAndRetryAsync(
             3,
             attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))
@@ -263,6 +263,6 @@ internal static class RetryPolicy
             attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))
         );
 
-    internal static IAsyncPolicy<IEnumerable<PowerTrade>> AsyncRetry = Policy.WrapAsync(asyncRetryExceptions, asyncRetryEmptyOrNull);
+    internal static IAsyncPolicy<IEnumerable<PowerTrade>> AsyncRetry = Policy.WrapAsync(asyncRetryPowerServiceExceptions, asyncRetryEmptyOrNull);
 
 }
