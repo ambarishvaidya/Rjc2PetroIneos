@@ -1,19 +1,22 @@
 ﻿
 using Microsoft.Extensions.Logging;
 using Moq;
+using PowerPeriodInterface;
 
 namespace TradePositionPersistence.Tests;
 
 public class TestFileNameCreation
 {
     Mock<ILogger<TradePositionCsvWriter>> _loggerMock;
+    Mock<IAggregatedTradePosition> _positionMock;
     TradePositionCsvWriter _writer;
 
     [SetUp]
     public void Setup()
     {
         _loggerMock = new Mock<ILogger<TradePositionCsvWriter>>();
-        _writer = new TradePositionCsvWriter(_loggerMock.Object);
+        _positionMock = new Mock<IAggregatedTradePosition>();
+        _writer = new TradePositionCsvWriter(_loggerMock.Object, _positionMock.Object);
     }
 
     [TestCase(2024, 12, 1, 12, 30, 59, "PowerPosition_20241201_1230.csv")]
