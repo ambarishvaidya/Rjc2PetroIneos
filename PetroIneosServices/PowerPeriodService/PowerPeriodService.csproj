@@ -12,6 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PowerPeriodInterface\PowerPeriodInterface.csproj" />
+    <ProjectReference Include="..\TradePositionAggregator\TradePositionData.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="PowerService">
       <HintPath>C:\Users\ambar\Downloads\PowerService.dll</HintPath>
     </Reference>
