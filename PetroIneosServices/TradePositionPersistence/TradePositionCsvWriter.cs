@@ -16,36 +16,25 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
     public TradePositionCsvWriter(ILogger<TradePositionCsvWriter> logger, IConfiguration configuration)
     {
         _logger = logger;        
-        _csvPowerPositionFolder = configuration["CsvPowerPositionPath"] ?? string.Empty;        
+        _csvPowerPositionFolder = configuration["CsvPowerPositionPath"] ?? string.Empty;
+        ValidatePath();
     }
 
     public async Task SaveAggregatedPositions(IAggregatedTradePosition position)
     {
         _position = position;
-        _logKey = _position.Id.ToString();
-
-        if(string.IsNullOrEmpty(_csvPowerPositionFolder))
-        {
-            LogCritical("CSV Power Position path is not configured.");
-            throw new ArgumentException("CSV Power Position path is not configured.");
-        }
-
-        if (!Path.Exists(_csvPowerPositionFolder))
-        {
-            LogCritical($"Path {_csvPowerPositionFolder} does not exist. ");
-            throw new ArgumentException($"Path {_csvPowerPositionFolder} does not exist.");
-        }
+        _logKey = _position.Id.ToString();        
 
         LogInformation($"Saving aggregated positions for {_position}");
 
         var fileName = Path.Combine(_csvPowerPositionFolder, ConstructFileName(_position.RequestedDateTime));
-        
+
         StringBuilder builder = new StringBuilder();
         builder.AppendLine(HEADER);
-        
+
         if (_position.Status != AggregatedTradePositionStatus.Failure)
         {
-            if (_position.Errors != null && _position.Errors.Any())            
+            if (_position.Errors != null && _position.Errors.Any())
                 LogWarn($"{fileName} will have some Data Issues. Issues [{string.Join(" | ", _position.Errors)}]");
 
             LogInformation($"Saving {fileName} with {_position.TradePositions.Count} positions.");
@@ -64,21 +53,36 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
             {
                 var renameFileName = fileName.Replace(".csv", $"_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.csv");
                 LogWarn($"File {fileName} already exists. Old file is Renamed to {renameFileName}.");
-                File.Move(fileName, renameFileName);  
+                File.Move(fileName, renameFileName);
             }
             await File.WriteAllTextAsync(fileName, builder.ToString());
-        } 
-        catch(OperationCanceledException ex)
+        }
+        catch (OperationCanceledException ex)
         {
             LogError($"Failed to save file {fileName}. Operation was canceled. Exception: {ex.Message}");
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             LogError($"Failed to save file {fileName}. Exception: {ex.Message}");
         }
     }
 
-    public string ConstructFileName(DateTime dt)
+    internal void ValidatePath()
+    {
+        if (string.IsNullOrEmpty(_csvPowerPositionFolder))
+        {
+            LogCritical("CSV Power Position path is not configured.");
+            throw new ArgumentException("CSV Power Position path is not configured.");
+        }
+
+        if (!Path.Exists(_csvPowerPositionFolder))
+        {
+            LogCritical($"Path {_csvPowerPositionFolder} does not exist. ");
+            throw new ArgumentException($"Path {_csvPowerPositionFolder} does not exist.");
+        }
+    }
+
+    internal string ConstructFileName(DateTime dt)
     {
         return $"PowerPosition_{dt.ToString("yyyyMMdd")}_{dt.ToString("HHmm")}.csv";
     }
