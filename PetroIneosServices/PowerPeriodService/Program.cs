@@ -6,6 +6,9 @@ using TradePositionPersistence;
 using System.IO.Abstractions;
 
 var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddWindowsService();
+
 builder.Logging.ClearProviders();
 builder.Logging.AddLog4Net("log4net.config");
 builder.Services.AddHostedService<Worker>();
