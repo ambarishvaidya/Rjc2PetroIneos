@@ -42,7 +42,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedPos
     /// <param name="powerService"></param>
     /// <param name="asyncRetry"></param>
     /// <param name="syncRetry"></param>
-    public TradePositionAggregator(IPowerService powerService, 
+    internal TradePositionAggregator(IPowerService powerService, 
         ILogger<TradePositionAggregator> logger,
         IAsyncPolicy<IEnumerable<PowerTrade>> asyncRetry,
         ISyncPolicy<IEnumerable<PowerTrade>> syncRetry)
