@@ -37,6 +37,7 @@ public class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        _logger.LogInformation("Service starting. Extracting service start positions.");
         Run(DateTime.Now, stoppingToken);
         while (!stoppingToken.IsCancellationRequested)
         {
