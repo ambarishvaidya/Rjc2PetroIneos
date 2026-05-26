@@ -7,6 +7,169 @@ using System.IO.Abstractions;
 
 namespace TradePositionPersistence.Tests;
 
+public class TestFileWriteAllText
+{
+    Mock<ILogger<TradePositionCsvWriter>> _loggerMock;
+    Mock<IAggregatedPositionResult> _positionMock;
+    ITradePositionDataPersistence _dataPersistence;
+    TradePositionCsvWriter _csvWriter;
+    IConfiguration _configuration;
+    CancellationToken _cancellationToken;
+    Mock<IFileSystem> _fsMock;
+
+    string _path;
+
+    [SetUp]
+    public void Setup()
+    {
+        _loggerMock = new Mock<ILogger<TradePositionCsvWriter>>();
+        _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+
+        _path = $@"C:\AggregatedPositionsTestSuite_{DateTime.Now:yyyyMMdd_HHmmss}";
+        if (!Directory.Exists(_path))
+            Directory.CreateDirectory(_path);
+
+        _configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string>
+            {
+                { "CsvPowerPositionPath", _path }
+            })
+            .Build();
+
+        _fsMock = new Mock<IFileSystem>();
+
+        _positionMock = new Mock<IAggregatedPositionResult>();
+        _positionMock.SetupGet(p => p.Id).Returns(Guid.NewGuid());
+        _positionMock.SetupGet(p => p.Errors).Returns(new List<string> { "Error1", "Error2" });
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        if (Directory.Exists(_path))
+        {
+            Directory.Delete(_path, true);
+        }
+    }
+
+    [Test]
+    public async Task SaveAggregatedPositions_WhenWriteAllTextThrowsOperationCancellation_LogsErrorForCancellation()
+    {
+        _positionMock.SetupGet(p => p.RequestedDateTime).Returns(new DateTime(2024, 12, 1, 12, 30, 59));
+        _positionMock.SetupGet(p => p.Status).Returns(AggregatedTradePositionStatus.Success);
+        _positionMock.SetupGet(p => p.TradePositions).Returns(new Dictionary<string, double>
+        {
+            { "15:00", 100 },
+            { "16:00", 150 }
+        });
+
+        _fsMock.Setup(f => f.File.WriteAllTextAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        _dataPersistence = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fsMock.Object);
+        await _dataPersistence.SaveAggregatedPositions(_positionMock.Object, _cancellationToken);
+
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString().Contains("Operation was canceled")),
+                It.IsAny<OperationCanceledException>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+
+    }
+
+    [Test]
+    public async Task SaveAggregatedPositions_WhenWriteAllTextThrowsUnauthrorizedAccess_LogsErrorForCancellation()
+    {
+        _positionMock.SetupGet(p => p.RequestedDateTime).Returns(new DateTime(2024, 12, 1, 12, 30, 59));
+        _positionMock.SetupGet(p => p.Status).Returns(AggregatedTradePositionStatus.Success);
+        _positionMock.SetupGet(p => p.TradePositions).Returns(new Dictionary<string, double>
+        {
+            { "15:00", 100 },
+            { "16:00", 150 }
+        });
+
+        _fsMock.Setup(f => f.File.WriteAllTextAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new UnauthorizedAccessException());
+
+        _dataPersistence = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fsMock.Object);
+        await _dataPersistence.SaveAggregatedPositions(_positionMock.Object, _cancellationToken);
+
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Critical,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString().Contains("Access is denied")),
+                It.IsAny<UnauthorizedAccessException>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task SaveAggregatedPositions_WhenWriteAllTextThrowsIOException_Retries3Times()
+    {
+        _positionMock.SetupGet(p => p.RequestedDateTime).Returns(new DateTime(2024, 12, 1, 12, 30, 59));
+        _positionMock.SetupGet(p => p.Status).Returns(AggregatedTradePositionStatus.Success);
+        _positionMock.SetupGet(p => p.TradePositions).Returns(new Dictionary<string, double>
+        {
+            { "15:00", 100 },
+            { "16:00", 150 }
+        });
+
+        _fsMock.SetupSequence(f => f.File.WriteAllTextAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new IOException())
+            .ThrowsAsync(new IOException())
+            .ThrowsAsync(new IOException())
+            .Returns(Task.CompletedTask);
+
+        _csvWriter = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fsMock.Object);
+        var fileName = _csvWriter.ConstructFileName(_positionMock.Object.RequestedDateTime);
+
+        File.WriteAllLines(Path.Combine(_path, fileName), new string[] { "" });
+
+        _dataPersistence = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fsMock.Object);
+        await _dataPersistence.SaveAggregatedPositions(_positionMock.Object, _cancellationToken);
+
+        Assert.That(File.Exists(Path.Combine(_path, fileName)), Is.True);
+    }
+
+    [Test]
+    public async Task SaveAggregatedPositions_WhenWriteAllTextThrowsIOException4Times_LogsCriticalError()
+    {
+        _positionMock.SetupGet(p => p.RequestedDateTime).Returns(new DateTime(2024, 12, 1, 12, 30, 59));
+        _positionMock.SetupGet(p => p.Status).Returns(AggregatedTradePositionStatus.Success);
+        _positionMock.SetupGet(p => p.TradePositions).Returns(new Dictionary<string, double>
+        {
+            { "15:00", 100 },
+            { "16:00", 150 }
+        });
+
+        _fsMock.SetupSequence(f => f.File.WriteAllTextAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new IOException())
+            .ThrowsAsync(new IOException())
+            .ThrowsAsync(new IOException())
+            .ThrowsAsync(new IOException())
+            .ThrowsAsync(new IOException());
+
+        _dataPersistence = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fsMock.Object);
+        await _dataPersistence.SaveAggregatedPositions(_positionMock.Object, _cancellationToken);
+
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Critical,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString().Contains("due to IO error")),
+                It.IsAny<IOException>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+}
+
 public class TestSaveAggregatedPositions
 {
     Mock<ILogger<TradePositionCsvWriter>> _loggerMock;
@@ -15,7 +178,6 @@ public class TestSaveAggregatedPositions
     TradePositionCsvWriter _csvWriter;
     IConfiguration _configuration;
     CancellationToken _cancellationToken;
-
     IFileSystem _fileSystem;
 
     string _path;

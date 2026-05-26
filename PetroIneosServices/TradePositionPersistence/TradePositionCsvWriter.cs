@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Polly;
 using PowerPeriodInterface;
 using System.IO.Abstractions;
 using System.Text;
@@ -14,12 +15,20 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
     private readonly string _csvPowerPositionFolder;
     private string _logKey = string.Empty;
     private IAggregatedPositionResult _position;
-    
+    private readonly IAsyncPolicy _asyncPolicy;
+
+
     public TradePositionCsvWriter(ILogger<TradePositionCsvWriter> logger, IConfiguration configuration, IFileSystem fileSystem)
+        : this(logger, configuration, fileSystem, RetryPolicy.asyncRetryIOException)
+    { }
+
+    internal TradePositionCsvWriter(ILogger<TradePositionCsvWriter> logger, IConfiguration configuration, IFileSystem fileSystem, 
+        IAsyncPolicy asyncPolicy)
     {
-        _logger = logger;                
+        _logger = logger;
         _fileSystem = fileSystem;
         _csvPowerPositionFolder = configuration["CsvPowerPositionPath"] ?? string.Empty;
+        _asyncPolicy = asyncPolicy;
         ValidatePath();
     }
 
@@ -58,7 +67,15 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
                 LogWarn($"File {fileName} already exists. Old file is Renamed to {renameFileName}.");
                 _fileSystem.File.Move(fileName, renameFileName);
             }
-            await _fileSystem.File.WriteAllTextAsync(fileName, builder.ToString(), cancellationToken);
+            await _asyncPolicy.ExecuteAsync(() => _fileSystem.File.WriteAllTextAsync(fileName, builder.ToString(), cancellationToken));
+        }
+        catch(IOException ex)
+        {
+            LogCritical($"Failed to save file {fileName} due to IO error. Exception: {ex.Message}");
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            LogCritical($"Failed to save file {fileName}. Access is denied. Exception: {ex.Message}");
         }
         catch (OperationCanceledException ex)
         {
@@ -118,4 +135,15 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
         if (_logger.IsEnabled(LogLevel.Critical))
             _logger.LogCritical($"{_logKey} : {message}");
     }
+}
+
+internal static class RetryPolicy
+{
+    public static IAsyncPolicy asyncRetryIOException = Policy
+        .Handle<IOException>()
+        .WaitAndRetryAsync(
+            3,
+            attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))
+        );       
+
 }
