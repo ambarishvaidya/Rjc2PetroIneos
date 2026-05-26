@@ -15,4 +15,8 @@
     <ProjectReference Include="..\PowerPeriodInterface\PowerPeriodInterface.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="TradePositionPersistence.Tests" />
+  </ItemGroup>
+
 </Project>
