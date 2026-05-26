@@ -1,4 +1,5 @@
 using PowerPeriodInterface;
+using System.Diagnostics;
 using System.IO.Abstractions;
 
 namespace PowerPeriodService;
@@ -66,14 +67,21 @@ public class Worker : BackgroundService
 
     private async Task ExtractPositions(DateTime now, CancellationToken stoppingToken)
     {
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        _logger.LogInformation($"Extracting positions at {now}.");
         try
-        {
+        {               
             var positions = await _tradePositionDataProvider.GetTradePositionsAsync(now);
             await _tradePositionDataPersistence.SaveAggregatedPositions(positions, stoppingToken);
         }
         catch (Exception oex)
         {
             _logger.LogError(oex, "An error occurred while extracting positions.");
+        }
+        finally
+        {
+            stopwatch.Stop();
+            _logger.LogInformation($"Time taken for Extracting positions at {now} - {stopwatch.ElapsedMilliseconds} ms.");
         }
     }
     
