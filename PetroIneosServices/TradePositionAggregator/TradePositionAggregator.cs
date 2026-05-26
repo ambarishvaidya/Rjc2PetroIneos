@@ -133,7 +133,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedPos
         return dt.ToString(KEY_FORMAT) + Enum.GetName(typeof(DateTimeKind), kind);
     }
 
-    private (bool flowControl, IAggregatedPositionResult value) ValidateGetTradesResponse(IAggregatedPositionResult aggregatedTradePosition, IEnumerable<PowerTrade> resp)
+    internal (bool flowControl, IAggregatedPositionResult value) ValidateGetTradesResponse(IAggregatedPositionResult aggregatedTradePosition, IEnumerable<PowerTrade> resp)
     {
         if (resp == null)
         {
@@ -152,7 +152,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedPos
         return (flowControl: true, value: aggregatedTradePosition);
     }
 
-    private void ProcessPowerTrades(IEnumerable<PowerTrade> powerTrades, IAggregatedPositionResult aggregatedTradePosition)
+    internal void ProcessPowerTrades(IEnumerable<PowerTrade> powerTrades, IAggregatedPositionResult aggregatedTradePosition)
     {
         var tradePositions = new Dictionary<string, double>();
         var count = 0;
@@ -181,7 +181,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedPos
         aggregatedTradePosition.Status = aggregatedTradePosition.Errors.Any() ? AggregatedTradePositionStatus.SuccessWithErrors : AggregatedTradePositionStatus.Success;
     }
 
-    private bool IsPassedLocalDateTimeValid(DateTime localDateTime)
+    internal bool IsPassedLocalDateTimeValid(DateTime localDateTime)
     {
         if (localDateTime.Kind != DateTimeKind.Local)
         { 
