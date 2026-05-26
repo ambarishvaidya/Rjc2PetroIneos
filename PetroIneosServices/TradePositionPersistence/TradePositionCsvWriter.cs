@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PowerPeriodInterface;
+using System.IO.Abstractions;
 using System.Text;
 
 namespace TradePositionPersistence;
@@ -8,16 +9,18 @@ namespace TradePositionPersistence;
 public class TradePositionCsvWriter : ITradePositionDataPersistence
 {
     private readonly ILogger<TradePositionCsvWriter> _logger;
+    private readonly IFileSystem _fileSystem;
     private static string HEADER = "Local Time,Volume";
     private readonly string _csvPowerPositionFolder;
     private string _logKey = string.Empty;
     private IAggregatedPositionResult _position;
     private readonly CancellationToken _cancellationToken;
 
-    public TradePositionCsvWriter(ILogger<TradePositionCsvWriter> logger, IConfiguration configuration, CancellationToken cancellationToken)
+    public TradePositionCsvWriter(ILogger<TradePositionCsvWriter> logger, IConfiguration configuration, CancellationToken cancellationToken, IFileSystem fileSystem)
     {
         _logger = logger;        
         _cancellationToken = cancellationToken;
+        _fileSystem = fileSystem;
         _csvPowerPositionFolder = configuration["CsvPowerPositionPath"] ?? string.Empty;
         ValidatePath();
     }
@@ -51,11 +54,11 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
         }
         try
         {
-            if (File.Exists(fileName))
+            if (_fileSystem.File.Exists(fileName))
             {
                 var renameFileName = fileName.Replace(".csv", $"_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.csv");
                 LogWarn($"File {fileName} already exists. Old file is Renamed to {renameFileName}.");
-                File.Move(fileName, renameFileName);
+                _fileSystem.File.Move(fileName, renameFileName);
             }
             await File.WriteAllTextAsync(fileName, builder.ToString());
         }
