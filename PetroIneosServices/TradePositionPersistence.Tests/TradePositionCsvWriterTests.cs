@@ -59,12 +59,12 @@ public class TestSaveAggregatedPositions
         _positionMock.SetupGet(p => p.RequestedDateTime).Returns(new DateTime(2024, 12, 1, 12, 30, 59));
         _positionMock.SetupGet(p => p.Status).Returns(AggregatedTradePositionStatus.Failure);
 
-        _csvWriter = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _cancellationToken, _fileSystem);
-        _dataPersistence = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _cancellationToken, _fileSystem);
+        _csvWriter = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fileSystem);
+        _dataPersistence = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fileSystem);
 
         var fileName = _csvWriter.ConstructFileName(_positionMock.Object.RequestedDateTime);
 
-        await _dataPersistence.SaveAggregatedPositions(_positionMock.Object);
+        await _dataPersistence.SaveAggregatedPositions(_positionMock.Object, _cancellationToken);
 
         Assert.That(_fileSystem.File.Exists(Path.Combine(_path, fileName)), Is.True);
     }
@@ -80,13 +80,13 @@ public class TestSaveAggregatedPositions
             { "16:00", 150 }
         });
 
-        _csvWriter = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _cancellationToken, _fileSystem);
-        _dataPersistence = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _cancellationToken, _fileSystem);
+        _csvWriter = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fileSystem);
+        _dataPersistence = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fileSystem);
 
         var fileName = _csvWriter.ConstructFileName(_positionMock.Object.RequestedDateTime);
         _fileSystem.File.WriteAllText(Path.Combine(_path, fileName), "Existing file content");
 
-        await _dataPersistence.SaveAggregatedPositions(_positionMock.Object);
+        await _dataPersistence.SaveAggregatedPositions(_positionMock.Object, _cancellationToken);
 
         Assert.That(_fileSystem.Directory.GetFiles(_path).Length, Is.EqualTo(2));
         Assert.That(_fileSystem.Directory.GetFiles(_path).
@@ -104,12 +104,12 @@ public class TestSaveAggregatedPositions
             { "16:00", 150 }
         });
 
-        _dataPersistence = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _cancellationToken, _fileSystem);
+        _dataPersistence = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fileSystem);
 
-        _csvWriter = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _cancellationToken, _fileSystem);
+        _csvWriter = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fileSystem);
         var fileName = _csvWriter.ConstructFileName(_positionMock.Object.RequestedDateTime);
         
-        await _dataPersistence.SaveAggregatedPositions(_positionMock.Object);
+        await _dataPersistence.SaveAggregatedPositions(_positionMock.Object, _cancellationToken);
 
         string[] lines = _fileSystem.File.ReadAllLines(Path.Combine(_path, fileName));
 
@@ -127,12 +127,12 @@ public class TestSaveAggregatedPositions
         _positionMock.SetupGet(p => p.Status).Returns(status);
         _positionMock.SetupGet(p => p.TradePositions).Returns(new Dictionary<string, double>());
 
-        _dataPersistence = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _cancellationToken, _fileSystem);
+        _dataPersistence = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fileSystem);
 
-        _csvWriter = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _cancellationToken, _fileSystem);
+        _csvWriter = new TradePositionCsvWriter(_loggerMock.Object, _configuration, _fileSystem);
         var fileName = _csvWriter.ConstructFileName(_positionMock.Object.RequestedDateTime);
         
-        await _dataPersistence.SaveAggregatedPositions(_positionMock.Object);
+        await _dataPersistence.SaveAggregatedPositions(_positionMock.Object, _cancellationToken);
 
         string[] lines = _fileSystem.File.ReadAllLines(Path.Combine(_path, fileName));
 
@@ -168,7 +168,7 @@ public class TestCsvFolderPath
             })
             .Build();
         
-        Assert.Throws<ArgumentException>(() => new TradePositionCsvWriter(_loggerMock.Object, configuration, _cancellationToken, _fileSystem));
+        Assert.Throws<ArgumentException>(() => new TradePositionCsvWriter(_loggerMock.Object, configuration, _fileSystem));
     }
 }
 
@@ -194,7 +194,7 @@ public class TestFileNameCreation
 
         _fileSystem = new FileSystem();
 
-        _writer = new TradePositionCsvWriter(_loggerMock.Object, configuration, _cancellationToken, _fileSystem);
+        _writer = new TradePositionCsvWriter(_loggerMock.Object, configuration, _fileSystem);
     }
 
     [TestCase(2024, 12, 1, 12, 30, 59, "PowerPosition_20241201_1230.csv")]

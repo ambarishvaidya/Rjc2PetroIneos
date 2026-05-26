@@ -14,18 +14,16 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
     private readonly string _csvPowerPositionFolder;
     private string _logKey = string.Empty;
     private IAggregatedPositionResult _position;
-    private readonly CancellationToken _cancellationToken;
-
-    public TradePositionCsvWriter(ILogger<TradePositionCsvWriter> logger, IConfiguration configuration, CancellationToken cancellationToken, IFileSystem fileSystem)
+    
+    public TradePositionCsvWriter(ILogger<TradePositionCsvWriter> logger, IConfiguration configuration, IFileSystem fileSystem)
     {
-        _logger = logger;        
-        _cancellationToken = cancellationToken;
+        _logger = logger;                
         _fileSystem = fileSystem;
         _csvPowerPositionFolder = configuration["CsvPowerPositionPath"] ?? string.Empty;
         ValidatePath();
     }
 
-    public async Task SaveAggregatedPositions(IAggregatedPositionResult position)
+    public async Task SaveAggregatedPositions(IAggregatedPositionResult position, CancellationToken cancellationToken)
     {
         _position = position;
         _logKey = _position.Id.ToString();        
@@ -60,7 +58,7 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
                 LogWarn($"File {fileName} already exists. Old file is Renamed to {renameFileName}.");
                 _fileSystem.File.Move(fileName, renameFileName);
             }
-            await File.WriteAllTextAsync(fileName, builder.ToString());
+            await _fileSystem.File.WriteAllTextAsync(fileName, builder.ToString(), cancellationToken);
         }
         catch (OperationCanceledException ex)
         {

@@ -2,5 +2,5 @@
 
 public interface ITradePositionDataPersistence
 {
-    Task SaveAggregatedPositions(IAggregatedPositionResult position);
+    Task SaveAggregatedPositions(IAggregatedPositionResult position, CancellationToken cancellationToken);
 }
