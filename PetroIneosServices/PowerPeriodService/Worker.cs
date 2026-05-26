@@ -2,26 +2,37 @@ using PowerPeriodInterface;
 
 namespace PowerPeriodService;
 
-public class Worker(ILogger<Worker> logger, IConfiguration configuration,
-    ITradePositionDataProvider<IAggregatedTradePosition> tradePositionDataProvider,
-    ITradePositionDataPersistence tradePositionDataPersistence) : BackgroundService
+public class Worker : BackgroundService
 {
-    
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    private readonly ILogger<Worker> logger;
+    private readonly IConfiguration configuration;
+    private readonly ITradePositionDataProvider<IAggregatedTradePosition> tradePositionDataProvider;
+    private readonly ITradePositionDataPersistence tradePositionDataPersistence;
+    private readonly int intervalInMinutes;
+    public Worker(ILogger<Worker> logger, IConfiguration configuration,
+                ITradePositionDataProvider<IAggregatedTradePosition> tradePositionDataProvider,
+                ITradePositionDataPersistence tradePositionDataPersistence)
     {
+        this.logger = logger;
+        this.configuration = configuration;
+        this.tradePositionDataProvider = tradePositionDataProvider;
+        this.tradePositionDataPersistence = tradePositionDataPersistence;
+
         var interval = configuration["IntervalInMinutes"];
         if (string.IsNullOrEmpty(interval))
-        {   
+        {
             logger.LogCritical("IntervalInMinutes is not configured. Service cannot start.");
-            return;
+            throw new InvalidOperationException("IntervalInMinutes is not configured.");
         }
-        if(!int.TryParse(interval, out int intervalInMinutes) || intervalInMinutes <= 0)        
+        if (!int.TryParse(interval, out int intervalInMinutes) || intervalInMinutes <= 0)
         {
             logger.LogCritical($"IntervalInMinutes '{interval}' is not a valid positive number greater than 0. Service cannot start.");
-            return;
-        }
+            throw new InvalidOperationException($"IntervalInMinutes '{interval}' is not a valid positive number greater than 0.");
+        }        
+    }
 
-
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
         Run(DateTime.Now);
         while (!stoppingToken.IsCancellationRequested)
         {
