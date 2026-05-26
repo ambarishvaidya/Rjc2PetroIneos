@@ -6,6 +6,8 @@ using TradePositionPersistence;
 using System.IO.Abstractions;
 
 var builder = Host.CreateApplicationBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddLog4Net("log4net.config");
 builder.Services.AddHostedService<Worker>();
 builder.Services.AddSingleton<IPowerService, PowerService>();
 builder.Services.AddTransient<ITradePositionDataProvider<IAggregatedPositionResult>, TradePositionAggregator>();
