@@ -12,10 +12,12 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
     private readonly string _csvPowerPositionFolder;
     private string _logKey = string.Empty;
     private IAggregatedPositionResult _position;
+    private readonly CancellationToken _cancellationToken;
 
-    public TradePositionCsvWriter(ILogger<TradePositionCsvWriter> logger, IConfiguration configuration)
+    public TradePositionCsvWriter(ILogger<TradePositionCsvWriter> logger, IConfiguration configuration, CancellationToken cancellationToken)
     {
         _logger = logger;        
+        _cancellationToken = cancellationToken;
         _csvPowerPositionFolder = configuration["CsvPowerPositionPath"] ?? string.Empty;
         ValidatePath();
     }
