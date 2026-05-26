@@ -2,10 +2,10 @@
 
 namespace TradePositionData;
 
-public class AggregatedTradePosition : IAggregatedTradePosition
+public class AggregatedPositionResult : IAggregatedPositionResult
 {
-    private AggregatedTradePosition() { }
-    internal AggregatedTradePosition(DateTime requestedDateTime)
+    private AggregatedPositionResult() { }
+    internal AggregatedPositionResult(DateTime requestedDateTime)
     {
         Id = Guid.NewGuid();
         RequestedDateTime = requestedDateTime;

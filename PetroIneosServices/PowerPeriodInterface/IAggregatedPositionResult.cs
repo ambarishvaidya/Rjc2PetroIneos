@@ -2,7 +2,7 @@
 
 namespace PowerPeriodInterface;
 
-public interface IAggregatedTradePosition
+public interface IAggregatedPositionResult
 {
     Guid Id { get; }
     AggregatedTradePositionStatus Status { get; set; }

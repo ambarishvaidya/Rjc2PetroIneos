@@ -11,7 +11,7 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
     private static string HEADER = "Local Time,Volume";
     private readonly string _csvPowerPositionFolder;
     private string _logKey = string.Empty;
-    private IAggregatedTradePosition _position;
+    private IAggregatedPositionResult _position;
 
     public TradePositionCsvWriter(ILogger<TradePositionCsvWriter> logger, IConfiguration configuration)
     {
@@ -20,7 +20,7 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
         ValidatePath();
     }
 
-    public async Task SaveAggregatedPositions(IAggregatedTradePosition position)
+    public async Task SaveAggregatedPositions(IAggregatedPositionResult position)
     {
         _position = position;
         _logKey = _position.Id.ToString();        

@@ -6,11 +6,11 @@ public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> logger;
     private readonly IConfiguration configuration;
-    private readonly ITradePositionDataProvider<IAggregatedTradePosition> tradePositionDataProvider;
+    private readonly ITradePositionDataProvider<IAggregatedPositionResult> tradePositionDataProvider;
     private readonly ITradePositionDataPersistence tradePositionDataPersistence;
     private readonly int intervalInMinutes;
     public Worker(ILogger<Worker> logger, IConfiguration configuration,
-                ITradePositionDataProvider<IAggregatedTradePosition> tradePositionDataProvider,
+                ITradePositionDataProvider<IAggregatedPositionResult> tradePositionDataProvider,
                 ITradePositionDataPersistence tradePositionDataPersistence)
     {
         this.logger = logger;

@@ -9,7 +9,7 @@ namespace TradePositionPersistence.Tests;
 public class TestSaveAggregatedPositions
 {
     Mock<ILogger<TradePositionCsvWriter>> _loggerMock;
-    Mock<IAggregatedTradePosition> _positionMock;
+    Mock<IAggregatedPositionResult> _positionMock;
     ITradePositionDataPersistence _dataPersistence;
     TradePositionCsvWriter _csvWriter;
     IConfiguration _configuration;
@@ -31,7 +31,7 @@ public class TestSaveAggregatedPositions
             })
             .Build();
 
-        _positionMock = new Mock<IAggregatedTradePosition>();
+        _positionMock = new Mock<IAggregatedPositionResult>();
         _positionMock.SetupGet(p => p.Id).Returns(Guid.NewGuid());        
         _positionMock.SetupGet(p => p.Errors).Returns(new List<string> { "Error1", "Error2" });
     }

@@ -8,7 +8,7 @@ namespace TradePositionData.Tests;
 
 public class LoggingTests
 {
-    ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
+    ITradePositionDataProvider<IAggregatedPositionResult> _aggregator;
     Mock<ILogger<TradePositionAggregator>> _logger;
     Mock<IPowerService> _powerServiceMock;
 
@@ -67,7 +67,7 @@ public class LoggingTests
 
 public class RetryTests
 {
-    ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
+    ITradePositionDataProvider<IAggregatedPositionResult> _aggregator;
     Mock<ILogger<TradePositionAggregator>> _logger;
     Mock<IPowerService> _powerServiceMock;
 
@@ -233,7 +233,7 @@ public class RetryTests
 
 public class ValidResponseTests
 {
-    ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
+    ITradePositionDataProvider<IAggregatedPositionResult> _aggregator;
     Mock<ILogger<TradePositionAggregator>> _logger;
     Mock<IPowerService> _powerServiceMock;
 
@@ -330,7 +330,7 @@ public class ValidResponseTests
 }
 public class InvalidResponseTests
 {
-    ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
+    ITradePositionDataProvider<IAggregatedPositionResult> _aggregator;
     Mock<ILogger<TradePositionAggregator>> _logger;
     Mock<IPowerService> _powerServiceMock;
 
@@ -346,7 +346,7 @@ public class InvalidResponseTests
     public void GetTradePositions_WhenPowerServiceThrowsException_ReturnAggregatedTradePositionWithException()
     {
         _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>())).Throws<Exception>();
-        IAggregatedTradePosition obj = _aggregator.GetTradePositions(DateTime.Now);
+        IAggregatedPositionResult obj = _aggregator.GetTradePositions(DateTime.Now);
         Assert.That(obj, Is.Not.Null);
     }
 
@@ -354,7 +354,7 @@ public class InvalidResponseTests
     public async Task GetTradePositionsAsync_WhenPowerServiceThrowsException_ReturnAggregatedTradePositionWithException()
     {
         _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>())).Throws<Exception>();
-        IAggregatedTradePosition obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        IAggregatedPositionResult obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
         Assert.That(obj, Is.Not.Null);
     }
 
@@ -362,7 +362,7 @@ public class InvalidResponseTests
     public void GetTradePositions_WhenPowerServiceReturnsNull_ReturnAggregatedTradePositionWithException()
     {
         _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>())).Returns(() => null);
-        IAggregatedTradePosition obj = _aggregator.GetTradePositions(DateTime.Now);
+        IAggregatedPositionResult obj = _aggregator.GetTradePositions(DateTime.Now);
         Assert.That(obj, Is.Not.Null);
         Assert.That(obj.Errors, Is.Not.Null);
         Assert.That(obj.Errors.Count, Is.EqualTo(1));
@@ -373,7 +373,7 @@ public class InvalidResponseTests
     public async Task GetTradePositionsAsync_WhenPowerServiceReturnsNull_ReturnAggregatedTradePositionWithException()
     {
         _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>())).ReturnsAsync(() => null);
-        IAggregatedTradePosition obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        IAggregatedPositionResult obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
         Assert.That(obj, Is.Not.Null);
         Assert.That(obj.Errors, Is.Not.Null);
         Assert.That(obj.Errors.Count, Is.EqualTo(1));
@@ -384,7 +384,7 @@ public class InvalidResponseTests
     public void GetTradePositions_WhenPowerServiceReturnsEmpty_ReturnAggregatedTradePositionWithException()
     {
         _powerServiceMock.Setup(s => s.GetTrades(It.IsAny<DateTime>())).Returns(() => Array.Empty<PowerTrade>());
-        IAggregatedTradePosition obj = _aggregator.GetTradePositions(DateTime.Now);
+        IAggregatedPositionResult obj = _aggregator.GetTradePositions(DateTime.Now);
         Assert.That(obj, Is.Not.Null);
         Assert.That(obj.Errors, Is.Not.Null);
         Assert.That(obj.Errors.Count, Is.EqualTo(1));
@@ -395,7 +395,7 @@ public class InvalidResponseTests
     public async Task GetTradePositionsAsync_WhenPowerServiceReturnsEmpty_ReturnAggregatedTradePositionWithException()
     {
         _powerServiceMock.Setup(s => s.GetTradesAsync(It.IsAny<DateTime>())).ReturnsAsync(() => Array.Empty<PowerTrade>());
-        IAggregatedTradePosition obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
+        IAggregatedPositionResult obj = await _aggregator.GetTradePositionsAsync(DateTime.Now);
         Assert.That(obj, Is.Not.Null);
         Assert.That(obj.Errors, Is.Not.Null);
         Assert.That(obj.Errors.Count, Is.EqualTo(1));
@@ -405,7 +405,7 @@ public class InvalidResponseTests
 
 public class DateTimeInputTests
 {
-    ITradePositionDataProvider<IAggregatedTradePosition> _aggregator;
+    ITradePositionDataProvider<IAggregatedPositionResult> _aggregator;
     Mock<ILogger<TradePositionAggregator>> _logger;
 
     [SetUp]

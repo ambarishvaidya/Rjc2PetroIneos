@@ -6,7 +6,7 @@ using System.Collections.Frozen;
 
 namespace TradePositionData;
 
-public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTradePosition>
+public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedPositionResult>
 {
     private int TOLERANCE_IN_MINS = 1;
     private const string KEY_FORMAT = "ddMMyyHHmmssfff";
@@ -53,7 +53,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         this.syncRetry = syncRetry;
     }
 
-    public IAggregatedTradePosition GetTradePositions(DateTime localDateTime)
+    public IAggregatedPositionResult GetTradePositions(DateTime localDateTime)
     {
         _logKey = GetLogKey(localDateTime) + "-S";
         LogInformation($"Request received for trade positions at {localDateTime} ");
@@ -61,7 +61,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         if (!IsPassedLocalDateTimeValid(localDateTime))
             throw new ArgumentException("DateTime has to local time within 1 minute tolerance.");
         
-        IAggregatedTradePosition aggregatedTradePosition = new AggregatedTradePosition(localDateTime);
+        IAggregatedPositionResult aggregatedTradePosition = new AggregatedPositionResult(localDateTime);
         _logKey = _logKey + "|" + aggregatedTradePosition.Id.ToString();
 
         try
@@ -69,7 +69,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
             LogInformation($"Fetching trade positions for {localDateTime} ");
 
             var resp = syncRetry.Execute(() => _powerService.GetTrades(localDateTime));
-            (bool flowControl, IAggregatedTradePosition value) = ValidateGetTradesResponse(aggregatedTradePosition, resp);
+            (bool flowControl, IAggregatedPositionResult value) = ValidateGetTradesResponse(aggregatedTradePosition, resp);
             if (!flowControl)
             {
                 value.Status = AggregatedTradePositionStatus.Failure;
@@ -90,7 +90,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
     }
 
 
-    public async Task<IAggregatedTradePosition> GetTradePositionsAsync(DateTime localDateTime)
+    public async Task<IAggregatedPositionResult> GetTradePositionsAsync(DateTime localDateTime)
     {
         _logKey = GetLogKey(localDateTime) + "-A";
         LogInformation($"Request received for trade positions at {localDateTime} ");
@@ -98,7 +98,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         if (!IsPassedLocalDateTimeValid(localDateTime))        
             throw new ArgumentException("DateTime has to local time within 1 minute tolerance.");
 
-        IAggregatedTradePosition aggregatedTradePosition = new AggregatedTradePosition(localDateTime);        
+        IAggregatedPositionResult aggregatedTradePosition = new AggregatedPositionResult(localDateTime);        
         _logKey = _logKey + "|" + aggregatedTradePosition.Id.ToString();
 
         try
@@ -106,7 +106,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
             LogInformation($"Fetching trade positions for {localDateTime} ");
             var resp = await asyncRetry.ExecuteAsync(() => _powerService.GetTradesAsync(localDateTime));
 
-            (bool flowControl, IAggregatedTradePosition value) = ValidateGetTradesResponse(aggregatedTradePosition, resp);
+            (bool flowControl, IAggregatedPositionResult value) = ValidateGetTradesResponse(aggregatedTradePosition, resp);
             if (!flowControl)
             {
                 value.Status = AggregatedTradePositionStatus.Failure;
@@ -133,7 +133,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         return dt.ToString(KEY_FORMAT) + Enum.GetName(typeof(DateTimeKind), kind);
     }
 
-    private (bool flowControl, IAggregatedTradePosition value) ValidateGetTradesResponse(IAggregatedTradePosition aggregatedTradePosition, IEnumerable<PowerTrade> resp)
+    private (bool flowControl, IAggregatedPositionResult value) ValidateGetTradesResponse(IAggregatedPositionResult aggregatedTradePosition, IEnumerable<PowerTrade> resp)
     {
         if (resp == null)
         {
@@ -152,7 +152,7 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedTra
         return (flowControl: true, value: aggregatedTradePosition);
     }
 
-    private void ProcessPowerTrades(IEnumerable<PowerTrade> powerTrades, IAggregatedTradePosition aggregatedTradePosition)
+    private void ProcessPowerTrades(IEnumerable<PowerTrade> powerTrades, IAggregatedPositionResult aggregatedTradePosition)
     {
         var tradePositions = new Dictionary<string, double>();
         var count = 0;
