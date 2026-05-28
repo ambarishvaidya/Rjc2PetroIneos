@@ -13,14 +13,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PowerPeriodInterface\PowerPeriodInterface.csproj" />
-	<Reference Include="PowerService">
-		<HintPath>Libs\PowerService.dll</HintPath>
-		<Private>true</Private>
-	</Reference>
   </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="TradePositionData.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PowerService">
+      <HintPath>..\Libs\PowerService.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
