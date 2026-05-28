@@ -14,7 +14,6 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedPos
     private readonly ISyncPolicy<IEnumerable<PowerTrade>> syncRetry;
     private readonly IPowerService _powerService;    
     private readonly ILogger _logger;
-    private string _logKey = " - ";
     private static FrozenDictionary<int, string> PeriodTimeMap = new Dictionary<int, string>()
     {
         { 1 , "23:00" }, { 2 , "00:00" }, { 3 , "01:00" }, { 4 , "02:00" }, { 5 , "03:00" }, { 6 , "04:00" }, 
@@ -55,15 +54,13 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedPos
 
     public IAggregatedPositionResult GetTradePositions(DateTime localDateTime)
     {
-        _logKey = GetLogKey(localDateTime) + "-S";
         LogInformation($"Request received for trade positions at {localDateTime} ");
 
         if (!IsPassedLocalDateTimeValid(localDateTime))
             throw new ArgumentException("DateTime has to local time within 1 minute tolerance.");
         
         IAggregatedPositionResult aggregatedTradePosition = new AggregatedPositionResult(localDateTime);
-        _logKey = _logKey + "|" + aggregatedTradePosition.Id.ToString();
-
+        
         try
         {
             LogInformation($"Fetching trade positions for {localDateTime} ");
@@ -92,15 +89,13 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedPos
 
     public async Task<IAggregatedPositionResult> GetTradePositionsAsync(DateTime localDateTime)
     {
-        _logKey = GetLogKey(localDateTime) + "-A";
         LogInformation($"Request received for trade positions at {localDateTime} ");
 
         if (!IsPassedLocalDateTimeValid(localDateTime))        
             throw new ArgumentException("DateTime has to local time within 1 minute tolerance.");
 
         IAggregatedPositionResult aggregatedTradePosition = new AggregatedPositionResult(localDateTime);        
-        _logKey = _logKey + "|" + aggregatedTradePosition.Id.ToString();
-
+        
         try
         {
             LogInformation($"Fetching trade positions for {localDateTime} ");
@@ -205,30 +200,30 @@ public class TradePositionAggregator : ITradePositionDataProvider<IAggregatedPos
     private void LogInformation(string message)
     {
         if (_logger.IsEnabled(LogLevel.Information))        
-            _logger.LogInformation($"{_logKey} : {message}");        
+            _logger.LogInformation($"{message}");        
     }
 
     private void LogWarn(string message)
     {
         if (_logger.IsEnabled(LogLevel.Warning))
-            _logger.LogWarning($"{_logKey} : {message}");
+            _logger.LogWarning($"{message}");
     }
 
     private void LogError(string message)
     {
         if (_logger.IsEnabled(LogLevel.Error))
-            _logger.LogError($"{_logKey} : {message}");
+            _logger.LogError($"{message}");
     }
 
     private void LogDebug(string message)
     {
         if (_logger.IsEnabled(LogLevel.Debug))
-            _logger.LogDebug($"{_logKey} : {message}");
+            _logger.LogDebug($"{message}");
     }
     private void LogCritical(string message)
     {
         if (_logger.IsEnabled(LogLevel.Critical))
-            _logger.LogCritical($"{_logKey} : {message}");
+            _logger.LogCritical($"{message}");
     }
 }
 

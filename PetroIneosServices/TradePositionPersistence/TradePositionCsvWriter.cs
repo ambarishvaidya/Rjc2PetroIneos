@@ -13,7 +13,6 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
     private readonly IFileSystem _fileSystem;
     private static string HEADER = "Local Time,Volume";
     private readonly string _csvPowerPositionFolder;
-    private string _logKey = string.Empty;
     private readonly IAsyncPolicy _asyncPolicy;
 
 
@@ -33,8 +32,6 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
 
     public async Task SaveAggregatedPositions(IAggregatedPositionResult position, CancellationToken cancellationToken)
     {
-        _logKey = position.Id.ToString();        
-
         LogInformation($"Saving aggregated positions for {position}");
 
         var fileName = Path.Combine(_csvPowerPositionFolder, ConstructFileName(position.RequestedDateTime));
@@ -108,30 +105,30 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
     private void LogInformation(string message)
     {
         if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation($"{_logKey} : {message}");
+            _logger.LogInformation($"{message}");
     }
 
     private void LogWarn(string message)
     {
         if (_logger.IsEnabled(LogLevel.Warning))
-            _logger.LogWarning($"{_logKey} : {message}");
+            _logger.LogWarning($"{message}");
     }
 
     private void LogError(string message)
     {
         if (_logger.IsEnabled(LogLevel.Error))
-            _logger.LogError($"{_logKey} : {message}");
+            _logger.LogError($"{message}");
     }
 
     private void LogDebug(string message)
     {
         if (_logger.IsEnabled(LogLevel.Debug))
-            _logger.LogDebug($"{_logKey} : {message}");
+            _logger.LogDebug($"{message}");
     }
     private void LogCritical(string message)
     {
         if (_logger.IsEnabled(LogLevel.Critical))
-            _logger.LogCritical($"{_logKey} : {message}");
+            _logger.LogCritical($"{message}");
     }
 }
 
