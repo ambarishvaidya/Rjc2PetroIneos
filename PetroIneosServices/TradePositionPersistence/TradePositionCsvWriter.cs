@@ -14,7 +14,6 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
     private static string HEADER = "Local Time,Volume";
     private readonly string _csvPowerPositionFolder;
     private string _logKey = string.Empty;
-    private IAggregatedPositionResult _position;
     private readonly IAsyncPolicy _asyncPolicy;
 
 
@@ -34,30 +33,29 @@ public class TradePositionCsvWriter : ITradePositionDataPersistence
 
     public async Task SaveAggregatedPositions(IAggregatedPositionResult position, CancellationToken cancellationToken)
     {
-        _position = position;
-        _logKey = _position.Id.ToString();        
+        _logKey = position.Id.ToString();        
 
-        LogInformation($"Saving aggregated positions for {_position}");
+        LogInformation($"Saving aggregated positions for {position}");
 
-        var fileName = Path.Combine(_csvPowerPositionFolder, ConstructFileName(_position.RequestedDateTime));
+        var fileName = Path.Combine(_csvPowerPositionFolder, ConstructFileName(position.RequestedDateTime));
 
         StringBuilder builder = new StringBuilder();
         builder.AppendLine(HEADER);
 
-        if (_position.Status != AggregatedTradePositionStatus.Failure)
+        if (position.Status != AggregatedTradePositionStatus.Failure)
         {
-            if (_position.Errors != null && _position.Errors.Any())
-                LogWarn($"{fileName} will have some Data Issues. Issues [{string.Join(" | ", _position.Errors)}]");
+            if (position.Errors != null && position.Errors.Any())
+                LogWarn($"{fileName} will have some Data Issues. Issues [{string.Join(" | ", position.Errors)}]");
 
-            LogInformation($"Saving {fileName} with {_position.TradePositions.Count} positions.");
-            foreach (var kvp in _position.TradePositions)
+            LogInformation($"Saving {fileName} with {position.TradePositions.Count} positions.");
+            foreach (var kvp in position.TradePositions)
             {
                 builder.AppendLine($"{kvp.Key},{kvp.Value}");
             }
         }
         else
         {
-            LogError($"Request {_position.RequestedDateTime} was not processed Successfully. Errors [{string.Join(" | ", _position.Errors)}]");
+            LogError($"Request {position.RequestedDateTime} was not processed Successfully. Errors [{string.Join(" | ", position.Errors)}]");
         }
         try
         {
